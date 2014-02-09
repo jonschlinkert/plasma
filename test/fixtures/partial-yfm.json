@@ -1,0 +1,8 @@
+{
+  "metadata": {
+    "title": "This title is from the PAGE YFM (partial-yfm.hbs)",
+    "description": "This description is from the PAGE YFM"
+  },
+  "content": "{{partial 'partial-yfm'}}",
+  "originalContent": "---\ntitle: This title is from the PAGE YFM (partial-yfm.hbs)\ndescription: This description is from the PAGE YFM\n---\n{{partial 'partial-yfm'}}"
+}
