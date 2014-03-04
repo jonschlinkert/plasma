@@ -1,6 +1,6 @@
 {
   "name": "plasma",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Normalize config formats, expand globbing/minimatch patterns and read-in JSON/YAML data files.",
   "repository": {
     "type": "git",
@@ -26,7 +26,8 @@
     "chalk": "~0.4.0",
     "fs-utils": "~0.3.6",
     "globule": "~0.2.0",
-    "lodash": "~2.4.1"
+    "lodash": "~2.4.1",
+    "async": "~0.2.10"
   },
   "devDependencies": {
     "mocha": "~1.17.0",
