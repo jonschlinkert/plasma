@@ -1,59 +1,94 @@
+/**
+ * plasma <https://github.com/jonschlinkert/plasma>
+ *
+ * Copyright (c) 2014 Jon Schlinkert, contributors.
+ * Licensed under the MIT license.
+ */
+
+const expect = require('chai').expect;
+const log = require('verbalize');
 const file = require('fs-utils');
+const _ = require('lodash');
 const plasma = require('../');
 
 
-plasma.verbose = true;
+var expected = file.readJSONSync('test/expected/expected.json');
 
+describe('plasma.load(config)', function () {
+  it('should support.... ', function (done) {
+    var fixture = {data: {cwd: '.', src: ['test/fixtures/a/*.json']}, src: 'test/fixtures/*.{yml,json}'};
+    expect(plasma.load(fixture)).to.deep.equal(expected);
+    done();
+  });
 
-// TODO: Mocha tests!!!
-var config = {
-  one: {
-    files: {},
-    options: {
-      data: {
-        cwd: '.',
-        src: 'tmp/*.json',
-      }
-    }
-  },
-  two: {
-    files: {},
-    options: {
-      cwd: '.',
-      src: 'test/fixtures/data/*.json',
-    }
-  },
-  three: {
-    files: {},
-    options: {
-      data: ['test/fixtures/data/collections/*.json']
-    }
-  },
-  four: {
-    files: {},
-    options: {
-      data: [
-        {"name": "plasma", "version": "0.1.0", "description": "Path extras and utilities to extend the Node.js path module.", "repository": {"type": "git", "url": "https://github.com/assemble/normalize-data.git"}, "bugs": {"url": "https://github.com/assemble/normalize-data/issues"}, "licenses": [{"type": "MIT", "url": "https://github.com/assemble/normalize-data/blob/master/LICENSE-MIT"} ], "main": "index.js", "scripts": {"test": "mocha"}, "engines": {"node": ">= 0.8.0"}, "devDependencies": {"mocha": "~1.17.0", "chai": "~1.8.1", "benchmark": "~1.0.0"}, "keywords": ["file system", "file", "fs", "node", "node.js", "path", "utils"], "dependencies": {"globule": "~0.2.0", "fs-utils": "~0.3.4", "lodash": "~2.4.1", "chalk": "~0.4.0"} },
-        {src: 'test/fixtures/*.json'},
-      ]
-    }
-  },
-  five: {
-    files: {},
-    options: {
-      data: ['test/fixtures/*.json', 'test/fixtures/data/*.json']
-    }
-  },
-  six: {
-    files: {},
-    options: {
-      data: [
-        {src: 'test/fixtures/*.json'},
-        {src: 'test/fixtures/data/*.json'}
-      ]
-    }
-  }
-};
+  it('should support.... ', function (done) {
+    var fixture = {src: ['test/fixtures/a/*.json']};
+    var actual = plasma.load(fixture);
+    // expect(actual).to.deep.equal(expected);
+    done();
+  });
 
-file.writeJSONSync('test/actual/expand-data.json', plasma.load(config.six.options));
-file.writeJSONSync('test/actual/expand-data-arr.json', plasma.coerce(config.six.options, {toArray: true}));
+  it('should support.... ', function (done) {
+    var fixture = {data: ['test/fixtures/a/*.json']};
+    var actual = plasma.normalize(fixture);
+    // expect(actual).to.deep.equal(expected);
+    done();
+  });
+
+  it('should support.... ', function (done) {
+    var fixture = {data: {x: 'y'}, src: ['test/fixtures/*.{yml,json}']};
+    var expected = {data: {x: 'y'}, a: {a: 'b'}, b: {b: 'c'}};
+    expect(plasma.load(fixture)).to.deep.equal(expected);
+    done();
+  });
+
+  it('should support.... ', function (done) {
+    var fixture = {data: {x: 'y'}, a: {a: 'b'}, b: {b: 'c'}, src: ['test/fixtures/a/*.json']};
+    var expected2 = _.extend({data: {x: 'y'}, a: {a: 'b'}, b: {b: 'c'}}, expected);
+    expect(plasma.load(fixture)).to.deep.equal(expected2);
+    done();
+  });
+
+  // describe('when "---json" is defined after the first custom front-matter delimiter', function () {
+  //   it('should detect JSON as the language and correctly parse it as JSON.', function (done) {
+  //     var fixture = file.readFileSync('./test/fixtures/autodetect-json-delims.md');
+  //     var actual = verb.process(fixture, {
+  //       matter: {
+  //         autodetect: true,
+  //         delims: [';;;', ';;;']
+  //       }
+  //     });
+  //     actual.content).to.deep.equal('JSON Front Matter');
+  //     done();
+  //   });
+  // });
+  // it('should support', function () {
+  //   var config = {data: {cwd: '.', src: ['test/fixtures/*.json']}};
+  //   plasma.load(config).should.equal({});
+  // });
+
+  // it('should support', function () {
+  //   var config = {data: {cwd: '.', src: ['test/fixtures/*.json']}};
+  //   plasma.load(config).should.equal({});
+  // });
+
+  // it('should support', function () {
+  //   var config = {data: {cwd: '.', src: ['test/fixtures/*.json']}};
+  //   plasma.load(config).should.equal({});
+  // });
+
+  // it('should return', function () {
+  //   var config = {data: {cwd: '.', src: ['test/fixtures/*.json']}};
+  //   assert(null == plasma.load(config));
+  // });
+
+  // it('should plasma', function () {
+  //   var config = {data: {cwd: '.', src: ['test/fixtures/*.json']}};
+  //   plasma.load(config).should.equal({});
+  // });
+
+  // it('should plasma', function () {
+  //   var config = {data: {cwd: '.', src: ['test/fixtures/*.json']}};
+  //   plasma.load(config).should.equal({});
+  // });
+});

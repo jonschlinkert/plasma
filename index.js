@@ -1,35 +1,18 @@
-const async = require('async');
-const chalk = require('chalk');
-const file = require('fs-utils');
-const glob = require('globule');
-const _ = require('lodash');
-
-// Local libs
-const utils = require('./lib/utils');
-
-// Logging
-const success = chalk.green;
-const info = chalk.cyan;
-const warn = chalk.yellow;
-const error = chalk.red;
-
-
-var plasma = module.exports = {};
-
 /**
- * Pass globbing an array or string of
- * patterns to options.src
+ * plasma <https://github.com/jonschlinkert/plasma>
  *
- * @param {Object} options Globule options
- * @return {Array} Returns an array of filepaths.
+ * Copyright (c) 2014 Jon Schlinkert, contributors.
+ * Licensed under the MIT license.
  */
 
-plasma.find = function (options) {
-  var files = {};
-  var opts = _.cloneDeep(options);
-  files.src = glob.find(opts.src, opts);
-  return files;
-};
+const file = require('fs-utils');
+const glob = require('globule');
+const log = require('verbalize');
+const _ = require('lodash');
+const utils = require('./lib/utils');
+const plasma = module.exports = {};
+
+log.runner = 'plasma';
 
 /**
  * Normalize config formats for source files,
@@ -49,46 +32,76 @@ plasma.find = function (options) {
 
 plasma.normalize = function (config) {
   var data = config.data;
-  var exp = [];
-  var raw = [];
+  var patterns = [];
+  var noPaths = [];
+
+
+  // If a 'config.data' property exists
   if (data) {
-    if (data.src) {exp.push(data);}
-    if (_.isArray(data)) {
-      if (typeof data[0] === 'string') {
-        exp.push({
-          src: data
-        });
-      } else {
-        data.forEach(function(obj) {
-          if(_.isPlainObject(obj) && !obj.src) {
-            raw.push(obj);
-          }
-        });
-        exp.push(data);
-      }
+    // if there is a src property
+    if (data.src) {
+      // If a src is found, push it to patterns array
+      patterns.push({src: data.src});
+      // then remove it
+      delete data.src;
+    }
+    // if there isn't a src property, and it's an array
+    if (_.isArray(data) || _.isString(data)) {
+      data.forEach(function(item) {
+        if (item.src) {
+          // If a src is found, push it to patterns array
+          patterns.push({src: item.src});
+          delete item.src;
+        } else {
+          noPaths.push(item);
+        }
+      });
+    } else {
+      // Now push the remaining object into the noPaths array
+      noPaths.push(data);
     }
   }
+
+  // if a 'config.src' property exists
   if (config.src) {
-    exp.push(config);
+    patterns.push({src: config.src});
+    delete config.src;
+    noPaths.push(config);
   }
 
   if(!data && !config.src) {
-    new Error(error('No data or "src" found.'));
+    new Error(log.error('No data object or "src" property found.'));
   }
 
-  // Coerce to flattened arrays
-  exp = utils.arrayify(exp);
-  raw = utils.arrayify(raw);
+  patterns = _.flatten(patterns);
+  noPaths =_.flatten(noPaths);
 
   // Return an object with an array of raw data,
   // and an array of objects that have src
   // properties. We keep these separate so that
-  // globule doesn't try to find filepaths when
-  // they don't exist.
+  // globule doesn't try to find filepaths on
+  // objects that don't have any.
+
   return {
-    raw: raw || [],
-    data: _.difference(exp, raw)
+    noPaths: noPaths || [],
+    data: _.difference(patterns, noPaths)
   };
+};
+
+
+/**
+ * Pass globbing an array or string of
+ * patterns to options.src
+ *
+ * @param {Object} options Globule options
+ * @return {Array} Returns an array of filepaths.
+ */
+
+plasma.find = function (options) {
+  var files = {};
+  var data = _.cloneDeep(options || {});
+  files.src = glob.find(data.src, options);
+  return files;
 };
 
 
@@ -100,20 +113,21 @@ plasma.normalize = function (config) {
  * @return {Object}
  */
 
-plasma.expand = function (options) {
-  var metadata = plasma.normalize(options);
+plasma.expand = function (data) {
+  var metadata = plasma.normalize(data);
+
   if (Array.isArray(metadata.data)) {
     return {
       data: metadata.data.map(plasma.find),
-      raw: metadata.raw
+      noPaths: metadata.noPaths
     };
   } else {
-    var data = plasma.find(metadata.data);
-    return {
-      data: utils.arrayify(data),
-      raw: metadata.raw
-    };
+    data = plasma.find(metadata.data);
   }
+  return {
+    data: utils.arrayify(data),
+    noPaths: metadata.noPaths
+  };
 };
 
 
@@ -126,47 +140,57 @@ plasma.expand = function (options) {
  * @return  {Object}
  */
 
-plasma.load = function(config, options) {
-  var opts = _.extend({merge: false, group: false}, options);
-  opts.verbose = opts.verbose || plasma.verbose;
-  var data = {};
+plasma.load = function (config, options) {
+  var cloned = _.cloneDeep(config);
+
+  options = options || {},
+    data = {},
+    opts = _.extend({
+    merge: false,
+    group: false,
+    verbose: false
+  }, options);
+
+  log.mode.verbose = opts.verbose;
 
   // Expand globbing patterns into an array of files
   var expanded = plasma.expand(config);
 
-  async.forEach(expanded.data, function(obj, callback) {
+  expanded.data.forEach(function (obj) {
     // Empty files should already have already been
     // omitted, but we'll check here to make sure.
-    obj.src.filter(function(filepath) {
+    obj.src.filter(function (filepath) {
       if (file.isEmptyFile(filepath)) {
-        if(opts.verbose) {
-          console.warn(warn('>> Skipping empty file:'), filepath);
-        }
+        log.inform('skipping', 'empty file', filepath);
       } else {
         return true;
       }
-    }).map(function(filepath) {
-      if(opts.verbose) {
-        console.log(info('>> Loading:'), filepath, success('OK'));
-      }
+    }).map(function (filepath) {
+      log.inform('loading', filepath, log.green('OK'));
 
       // Create an object for each file, using the
       // basename of the file as the object name.
-      var name = file.base(filepath).toLowerCase();
+      var name = file.name(filepath).toLowerCase();
       var buffer = file.readDataSync(filepath);
-      if(!opts.merge) {
+      if (!opts.merge) {
         data[name] = buffer;
       } else {
         data = buffer;
       }
     });
-    callback();
   });
-
-  return data;
+  return _.extend(cloned, data);
 };
 
 
+/**
+ * Coerce the output data to either an array
+ * or an object.
+ *
+ * @param   {Object}  config
+ * @param   {Object}  options
+ * @return  {Object}
+ */
 
 plasma.coerce = function (config, options) {
   options = options || {};
@@ -180,5 +204,7 @@ plasma.coerce = function (config, options) {
     output = utils.flattenObject(output);
   }
 
+  log.verbose.inform('coerced');
   return output;
 };
+
