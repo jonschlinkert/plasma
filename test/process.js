@@ -6,7 +6,7 @@
  */
 
 const expect = require('chai').expect;
-const file = require('fs-utils');
+const file = require('read-data');
 const plasma = require('../');
 
 
@@ -16,7 +16,7 @@ const plasma = require('../');
 
 describe('when plasma.process() is used on a config object', function () {
   it('should resolve template strings to a configuration value', function (done) {
-    var fixture = [{expand: true, name: 'foo', src: ['*.json']}, {bar: '<%= foo %>'}];
+    var fixture = [{expand: true, name: 'foo', src: ['test/fixtures/pkg/*.json']}, {bar: '<%= foo %>'}];
     var expected = file.readJSONSync('test/expected/pkg-foo-bar.json');
 
     expect(plasma.process(fixture)).to.deep.equal(expected);
@@ -41,7 +41,7 @@ describe('when plasma.process() is used on a config object', function () {
 
 
   it('should use the basename of each data file as the namespace for its config object', function (done) {
-    var fixture = [{expand: true, name: ':basename', src: ['*.json']}];
+    var fixture = [{expand: true, name: ':basename', src: ['test/fixtures/bower-pkg/*.json']}];
     var expected = file.readJSONSync('test/expected/bower-pkg.json');
     expect(plasma.process(fixture)).to.deep.equal(expected);
     done();

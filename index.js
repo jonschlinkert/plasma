@@ -5,38 +5,20 @@
  * Licensed under the MIT license.
  */
 
-const file = require('fs-utils');
+const path = require('path');
+const file = require('read-data');
+const glob = require('globule');
 const expander = require('expander');
 const log = require('verbalize');
 const _ = require('lodash');
 
+const utils = require('./lib/utils');
 const plasma = module.exports = {};
 
-
-var toString = Object.prototype.toString;
-
-function type(val) {
-  return toString.call(val).toLowerCase().replace(/\[object ([\S]+)\]/, '$1');
-}
-
-var detectPattern = function(str) {
-  var re = /:([\S]+)/;
-  if (re.test(str)) {
-    return str.match(re)[1];
-  }
-};
-
-var namespaceFiles = function(arr, obj) {
-  var files = [];
-
-  _.forEach(arr, function(filepath) {
-    var pattern = file[detectPattern(obj.name)](filepath);
-    files = files.concat({name: pattern, src: filepath});
-  });
-
-  return files;
-};
-
+var type = utils.type;
+var detectPattern = utils.detectPattern;
+var namespaceFiles = utils.namespaceFiles;
+var namespaceObject = utils.namespaceObject;
 
 /**
  * Convert a string to an object with `expand` and `src` properties
@@ -125,7 +107,7 @@ plasma.expand = function(arr, options) {
   for (var i = 0; i < len; i++) {
     var obj = arr[i];
     if ('expand' in obj && 'src' in obj) {
-      obj.src = file.expand(obj.src, options);
+      obj.src = glob.find(obj.src, options);
 
       if ('name' in obj) {
         if (detectPattern(obj.name)) {
@@ -179,12 +161,9 @@ plasma.load = function(config, options) {
     }
 
     if ('name' in obj && 'src' in obj) {
-      obj.src = !Array.isArray(obj.src) ? [obj.src] : obj.src;
+      obj.src = utils.arrayify(obj.src);
 
-      _.forEach(obj.src, function(filepath) {
-        name[obj.name] = file.readDataSync(filepath);
-        _.extend(data, name);
-      });
+      _.extend(data, namespaceObject(obj.src, obj.name));
 
       delete data.name;
       delete data.src;

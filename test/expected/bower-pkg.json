@@ -2,7 +2,7 @@
   "package": {
     "name": "plasma",
     "version": "0.1.1",
-    "description": "Normalize config formats, expand globbing/minimatch patterns and read-in JSON/YAML data files.",
+    "description": "Load JSON/YAML data files with flexible config formats and minimatch/glob patterns.",
     "repository": {
       "type": "git",
       "url": "https://github.com/jonschlinkert/plasma.git"
@@ -24,22 +24,18 @@
       "node": ">= 0.8.0"
     },
     "dependencies": {
-      "expander": "~0.3.3",
       "fs-utils": "~0.4.0",
       "lodash": "~2.4.1",
-      "verbalize": "~0.1.2"
+      "verbalize": "~0.1.2",
+      "expander": "~0.3.3"
     },
     "devDependencies": {
       "mocha": "~1.17.0",
       "chai": "~1.8.1"
     },
     "keywords": [
-      "file system",
-      "file",
-      "fs",
-      "node",
-      "node.js",
-      "path",
+      "config",
+      "load",
       "utils"
     ]
   },

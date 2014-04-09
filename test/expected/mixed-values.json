@@ -2,7 +2,6 @@
   "one": "two",
   "name": "plasma",
   "version": "0.1.1",
-  "main": "index.js",
   "description": "Normalize config formats, expand globbing/minimatch patterns and read-in JSON/YAML data files.",
   "repository": {
     "type": "git",
@@ -17,6 +16,7 @@
       "url": "https://github.com/jonschlinkert/plasma/blob/master/LICENSE-MIT"
     }
   ],
+  "main": "index.js",
   "scripts": {
     "test": "mocha"
   },
@@ -48,7 +48,6 @@
   "package": {
     "name": "plasma",
     "version": "0.1.1",
-    "main": "index.js",
     "description": "Normalize config formats, expand globbing/minimatch patterns and read-in JSON/YAML data files.",
     "repository": {
       "type": "git",
@@ -63,6 +62,7 @@
         "url": "https://github.com/jonschlinkert/plasma/blob/master/LICENSE-MIT"
       }
     ],
+    "main": "index.js",
     "scripts": {
       "test": "mocha"
     },

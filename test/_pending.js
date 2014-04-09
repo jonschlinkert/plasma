@@ -6,7 +6,7 @@
  */
 
 const expect = require('chai').expect;
-const file = require('fs-utils');
+const file = require('read-data');
 const plasma = require('../');
 
 
