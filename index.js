@@ -58,12 +58,9 @@ plasma.normalizeArray = function (arr) {
 
 /**
  * Normalize config values to an array of objects.
- *
  * If an object is passed in directly, it will not be modified.
- *
  * If a string is passed in, it will be converted to an object
  * with `expand` and `src` properties.
- *
  * If an array is passed in, each string in the array will be
  * converted to an object with `expand` and `src` properties.
  *
@@ -90,6 +87,17 @@ plasma.normalize = function(config) {
 };
 
 
+/**
+ * Expand src properties in objects that have
+ * 'expand:true' defined
+ *
+ * @param   {Array}  arr      Array of objects
+ * @param   {Object} options  Options to pass to Globule
+ * @return  {Array}  array of object with expanded src files
+ *
+ * @api public
+ */
+
 plasma.expand = function(arr, options) {
   var data = [], len = arr.length;
 
@@ -104,7 +112,12 @@ plasma.expand = function(arr, options) {
 };
 
 
-
+/**
+ * [load description]
+ * @param   {[type]}  arr      [description]
+ * @param   {[type]}  options  [description]
+ * @return  {[type]}           [description]
+ */
 
 plasma.load = function(arr, options) {
   arr = plasma.expand(plasma.normalize(arr));
@@ -113,63 +126,22 @@ plasma.load = function(arr, options) {
   for (var i = 0; i < len; i++) {
     var obj = arr[i];
     if ('expand' in obj && 'src' in obj) {
-      obj.src = obj.src.map(file.readDataSync);
-    }
-
-    if ('name' in obj && 'src' in obj) {
-      var name = {};
-      name[obj.name] = _.flatten(obj.src);
-      _.extend(data, name);
+      var srcLen = obj.src.length;
+      for (var j = 0; j < srcLen; j++) {
+        if ('name' in obj) {
+          var name = {};
+          name[obj.name] = file.readDataSync(obj.src[j]);
+          _.extend(data, name);
+        } else {
+          _.extend(data, file.readDataSync(obj.src[j]));
+        }
+      }
+      delete obj.src;
+      delete obj.expand;
     } else {
       _.extend(data, obj);
     }
   }
   return data;
 };
-
-
-var expected = [
-  'test/fixtures/*.{yml,json}',
-  {a: 'b/*.json'},
-  {one: 'two', three: 'four', five: 'six'},
-  {expand: true, name: 'foo', src: ['*.json']},
-  {name: 'fez', src: ['*.json']},
-];
-
-
-var data = plasma.load(expected);
-console.log(JSON.stringify(data, null, 2));
-
-
-var arr = [
-  {
-    "expand": true,
-    "src": [
-      "test/fixtures/a.yml",
-      "test/fixtures/b.json"
-    ]
-  },
-  {
-    "a": "b/*.json"
-  },
-  {
-    "one": "two",
-    "three": "four",
-    "five": "six"
-  },
-  {
-    "expand": true,
-    "name": "foo",
-    "src": [
-      "bower.json",
-      "package.json"
-    ]
-  },
-  {
-    "name": "fez",
-    "src": [
-      "*.json"
-    ]
-  }
-];
 
