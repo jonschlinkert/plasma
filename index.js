@@ -47,15 +47,19 @@ plasma.normalize = function (config) {
     }
     // if there isn't a src property, and it's an array
     if (_.isArray(data) || _.isString(data)) {
-      data.forEach(function(item) {
-        if (item.src) {
-          // If a src is found, push it to patterns array
-          patterns.push({src: item.src});
-          delete item.src;
-        } else {
-          noPaths.push(item);
-        }
-      });
+      if (_.isString(data)) {
+        patterns.push({src: data});
+      } else {
+        data.forEach(function(item) {
+          if (item.src) {
+            // If a src is found, push it to patterns array
+            patterns.push({src: item.src});
+            delete item.src;
+          } else {
+            noPaths.push(item);
+          }
+        });
+      }
     } else {
       // Now push the remaining object into the noPaths array
       noPaths.push(data);
