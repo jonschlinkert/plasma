@@ -29,7 +29,7 @@ describe('plasma.load(config)', function () {
       data: 'test/fixtures/load/string/a.json'
     };
     var expected = expectedData('load/string/a.json');
-    var actual = plasma.load(config);
+    var actual = plasma.load(config.data);
     console.log('actual', actual);
     console.log('expected', expected);
     expect(actual).to.eql(expected);
