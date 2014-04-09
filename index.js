@@ -13,8 +13,10 @@ const _ = require('lodash');
 const plasma = module.exports = {};
 
 
+var toString = Object.prototype.toString;
+
 function type(val) {
-  return Object.prototype.toString.call(val).toLowerCase().replace(/\[object ([\S]+)\]/, '$1');
+  return toString.call(val).toLowerCase().replace(/\[object ([\S]+)\]/, '$1');
 }
 
 var detectPattern = function(str) {
