@@ -31,7 +31,8 @@
   },
   "devDependencies": {
     "mocha": "~1.17.0",
-    "chai": "~1.8.1"
+    "chai": "~1.8.1",
+    "minimist": "0.0.8"
   },
   "keywords": [
     "file system",
