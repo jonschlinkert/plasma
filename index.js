@@ -5,7 +5,6 @@
  * Licensed under the MIT license.
  */
 
-const path = require('path');
 const file = require('fs-utils');
 const log = require('verbalize');
 const _ = require('lodash');
@@ -120,28 +119,40 @@ plasma.expand = function(arr, options) {
  */
 
 plasma.load = function(arr, options) {
-  arr = plasma.expand(plasma.normalize(arr));
+  arr = plasma.expand(plasma.normalize(arr, options), options);
+  var data = {}, name = {}, len = arr.length;
 
-  var data = {}, len = arr.length;
   for (var i = 0; i < len; i++) {
     var obj = arr[i];
+
     if ('expand' in obj && 'src' in obj) {
       var srcLen = obj.src.length;
+      var meta = {};
       for (var j = 0; j < srcLen; j++) {
-        if ('name' in obj) {
-          var name = {};
-          name[obj.name] = file.readDataSync(obj.src[j]);
-          _.extend(data, name);
-        } else {
-          _.extend(data, file.readDataSync(obj.src[j]));
-        }
+        var src = obj.src[j];
+        _.extend(meta, file.readDataSync(src));
       }
-      delete obj.src;
+
+      if ('name' in obj) {
+        name[obj.name] = meta;
+        _.extend(data, name);
+        delete obj.name;
+      } else {
+        _.extend(data, meta);
+      }
+
       delete obj.expand;
+      delete obj.src;
+    }
+
+    if ('name' in obj && 'src' in obj) {
+      name[obj.name] = obj.src;
+      _.extend(data, name);
+      delete data.src;
     } else {
       _.extend(data, obj);
     }
   }
+
   return data;
 };
-
