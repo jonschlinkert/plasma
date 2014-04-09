@@ -6,209 +6,153 @@
  */
 
 const file = require('fs-utils');
-const glob = require('globule');
 const log = require('verbalize');
 const _ = require('lodash');
-const utils = require('./lib/utils');
+
 const plasma = module.exports = {};
 
-log.runner = 'plasma';
+
+function type(val) {
+  return Object.prototype.toString.call(val).toLowerCase().replace(/\[object ([\S]+)\]/, '$1');
+}
+
 
 /**
- * Normalize config formats for source files,
- * so that any of the following will work
+ * Convert a string to an object with `expand` and `src` properties
  *
- *   * {src: ''}
- *   * {data:  {src: ''}}
- *   * {data: [{src: ''}, {src: ''}]}
- *
- * Until additional formats are added, globule
- * will only attempt to process patterns on
- * the `src` property.
- *
- * @param   {Object} config  [description]
+ * @param   {String}  str  The string to convert
  * @return  {Object}
+ *
+ * @api public
  */
 
-plasma.normalize = function (config) {
-  var data = config.data;
-  var patterns = [];
-  var noPaths = [];
+plasma.normalizeString = function(str) {
+  return {expand: true, src: [str]};
+};
 
 
-  // If a 'config.data' property exists
-  if (data) {
-    // if there is a src property
-    if (data.src) {
-      // If a src is found, push it to patterns array
-      patterns.push({src: data.src});
-      // then remove it
+/**
+ * Normalize an array of strings to an array of objects,
+ * each with `expand` and `src` properties
+ *
+ * @param   {Array}  arr  Array of strings
+ * @return  {Array}       Array of objects
+ *
+ * @api public
+ */
+
+plasma.normalizeArray = function (arr) {
+  var data = [], len = arr.length;
+
+  for (var i = 0; i < len; i++) {
+    if (type(arr[i]) === 'string') {
+      data = data.concat(plasma.normalizeString(arr[i]));
+    } else if (type(arr[i]) === 'object') {
+      data = data.concat(arr[i]);
+    }
+  }
+  return data;
+};
+
+
+/**
+ * Normalize config values to an array of objects.
+ * If an object is passed in directly, it will not be modified.
+ * If a string is passed in, it will be converted to an object
+ * with `expand` and `src` properties.
+ * If an array is passed in, each string in the array will be
+ * converted to an object with `expand` and `src` properties.
+ *
+ * @param   {String|Object|Array}  config
+ * @return  {Array} array of normalized config objects
+ *
+ * @api public
+ */
+
+plasma.normalize = function(config) {
+  var data = [];
+
+  log.verbose.inform('normalizing');
+
+  if (type(config) === 'string') {
+    data = data.concat(plasma.normalizeString(config));
+  } else if (type(config) === 'array') {
+    data = data.concat(plasma.normalizeArray(config));
+  } else if (type(config) === 'object') {
+    data = data.concat(config);
+  }
+
+  return data;
+};
+
+
+/**
+ * Expand src properties in objects that have
+ * 'expand:true' defined
+ *
+ * @param   {Array}  arr      Array of objects
+ * @param   {Object} options  Options to pass to Globule
+ * @return  {Array}  array of object with expanded src files
+ *
+ * @api public
+ */
+
+plasma.expand = function(arr, options) {
+  var data = [], len = arr.length;
+
+  for (var i = 0; i < len; i++) {
+    var obj = arr[i];
+    if ('expand' in obj && 'src' in obj) {
+      obj.src = file.expand(obj.src, options);
+    }
+    data = data.concat(obj);
+  }
+  return data;
+};
+
+
+/**
+ * [load description]
+ * @param   {[type]}  arr      [description]
+ * @param   {[type]}  options  [description]
+ * @return  {[type]}           [description]
+ */
+
+plasma.load = function(arr, options) {
+  arr = plasma.expand(plasma.normalize(arr, options), options);
+  var data = {}, name = {}, len = arr.length;
+
+  for (var i = 0; i < len; i++) {
+    var obj = arr[i];
+
+    if ('expand' in obj && 'src' in obj) {
+      var srcLen = obj.src.length;
+      var meta = {};
+      for (var j = 0; j < srcLen; j++) {
+        var src = obj.src[j];
+        _.extend(meta, file.readDataSync(src));
+      }
+
+      if ('name' in obj) {
+        name[obj.name] = meta;
+        _.extend(data, name);
+        delete obj.name;
+      } else {
+        _.extend(data, meta);
+      }
+
+      delete obj.expand;
+      delete obj.src;
+    }
+
+    if ('name' in obj && 'src' in obj) {
+      name[obj.name] = obj.src;
+      _.extend(data, name);
       delete data.src;
-    }
-    // if there isn't a src property, and it's an array
-    if (_.isArray(data) || _.isString(data)) {
-      if (_.isString(data)) {
-        patterns.push({src: data});
-      } else {
-        data.forEach(function(item) {
-          if (item.src) {
-            // If a src is found, push it to patterns array
-            patterns.push({src: item.src});
-            delete item.src;
-          } else {
-            noPaths.push(item);
-          }
-        });
-      }
     } else {
-      // Now push the remaining object into the noPaths array
-      noPaths.push(data);
+      _.extend(data, obj);
     }
   }
 
-  // if a 'config.src' property exists
-  if (config.src) {
-    patterns.push({src: config.src});
-    delete config.src;
-    noPaths.push(config);
-  }
-
-  if(!data && !config.src) {
-    new Error(log.error('No data object or "src" property found.'));
-  }
-
-  patterns = _.flatten(patterns);
-  noPaths =_.flatten(noPaths);
-
-  // Return an object with an array of raw data,
-  // and an array of objects that have src
-  // properties. We keep these separate so that
-  // globule doesn't try to find filepaths on
-  // objects that don't have any.
-
-  return {
-    noPaths: noPaths || [],
-    data: _.difference(patterns, noPaths)
-  };
+  return data;
 };
-
-
-/**
- * Pass globbing an array or string of
- * patterns to options.src
- *
- * @param {Object} options Globule options
- * @return {Array} Returns an array of filepaths.
- */
-
-plasma.find = function (options) {
-  var files = {};
-  var data = _.cloneDeep(options || {});
-  files.src = glob.find(data.src, options);
-  return files;
-};
-
-
-/**
- * Expand globbing patterns from normalized
- * config.
- *
- * @param {Object} options
- * @return {Object}
- */
-
-plasma.expand = function (data) {
-  var metadata = plasma.normalize(data);
-
-  if (Array.isArray(metadata.data)) {
-    return {
-      data: metadata.data.map(plasma.find),
-      noPaths: metadata.noPaths
-    };
-  } else {
-    data = plasma.find(metadata.data);
-  }
-  return {
-    data: utils.arrayify(data),
-    noPaths: metadata.noPaths
-  };
-};
-
-
-/**
- * Actually read-in data from each file
- * in the given array
- *
- * @param   {Object}  config
- * @param   {Object}  options
- * @return  {Object}
- */
-
-plasma.load = function (config, options) {
-  var cloned = _.cloneDeep(config);
-
-  options = options || {},
-    data = {},
-    opts = _.extend({
-    merge: false,
-    group: false,
-    verbose: false
-  }, options);
-
-  log.mode.verbose = opts.verbose;
-
-  // Expand globbing patterns into an array of files
-  var expanded = plasma.expand(config);
-
-  expanded.data.forEach(function (obj) {
-    // Empty files should already have already been
-    // omitted, but we'll check here to make sure.
-    obj.src.filter(function (filepath) {
-      if (file.isEmptyFile(filepath)) {
-        log.inform('skipping', 'empty file', filepath);
-      } else {
-        return true;
-      }
-    }).map(function (filepath) {
-      log.inform('loading', filepath, log.green('OK'));
-
-      // Create an object for each file, using the
-      // basename of the file as the object name.
-      var name = file.name(filepath).toLowerCase();
-      var buffer = file.readDataSync(filepath);
-      if (!opts.merge) {
-        data[name] = buffer;
-      } else {
-        data = buffer;
-      }
-    });
-  });
-  return _.extend(cloned, data);
-};
-
-
-/**
- * Coerce the output data to either an array
- * or an object.
- *
- * @param   {Object}  config
- * @param   {Object}  options
- * @return  {Object}
- */
-
-plasma.coerce = function (config, options) {
-  options = options || {};
-
-  var data = plasma.load(config, options);
-  var output = _.cloneDeep(data);
-
-  if(options.toArray) {
-    output = utils.formatAsArray(output);
-  } else if(options.flatten) {
-    output = utils.flattenObject(output);
-  }
-
-  log.verbose.inform('coerced');
-  return output;
-};
-
