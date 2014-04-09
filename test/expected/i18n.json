@@ -1,0 +1,58 @@
+{
+  "de": {
+    "select-language": "Wählen Sie eine Sprache"
+  },
+  "en": {
+    "es": {
+      "select-language": "Seleccione el idioma"
+    },
+    "de": {
+      "select-language": "Wählen Sie eine Sprache"
+    },
+    "fi": {
+      "select-language": "Valitse kieli"
+    },
+    "he": {
+      "select-language": "בחר את השפה"
+    },
+    "hi": {
+      "select-language": "भाषा चुनें"
+    },
+    "ja": {
+      "select-language": "言語を選択する"
+    },
+    "ml": {
+      "select-language": "ഭാഷ തിരഞ്ഞെടുക്കുക"
+    },
+    "nl": {
+      "select-language": "Selecteer taal"
+    },
+    "ta": {
+      "select-language": "மொழி தேர்வு"
+    }
+  },
+  "es": {
+    "select-language": "Seleccione el idioma"
+  },
+  "fi": {
+    "select-language": "Valitse kieli"
+  },
+  "he": {
+    "select-language": "בחר את השפה"
+  },
+  "hi": {
+    "select-language": "भाषा चुनें"
+  },
+  "ja": {
+    "select-language": "言語を選択する"
+  },
+  "ml": {
+    "select-language": "ഭാഷ തിരഞ്ഞെടുക്കുക"
+  },
+  "nl": {
+    "select-language": "Selecteer taal"
+  },
+  "ta": {
+    "select-language": "மொழி தேர்வு"
+  }
+}

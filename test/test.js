@@ -277,13 +277,13 @@ describe('plasma.load()', function () {
 
 
   describe('when both the `name` property and the `src` are used', function () {
-    it('should return an object with the name from the `name` property', function (done) {
+    it('should return an object named after the `name` property', function (done) {
       var fixture = [
         {one: 'two'},
-        {name: 'pkg', src: ['test/fixtures/pkg/*.json']}
+        {name: 'pkg', src: ['test/fixtures/a.yml']}
       ];
 
-      var expected = {pkg: ['test/fixtures/pkg/*.json'], one: 'two'};
+      var expected = {pkg: {aaa: 'bbbb'}, one: 'two'};
       expect(plasma.load(fixture)).to.deep.equal(expected);
       done();
     });
@@ -293,14 +293,14 @@ describe('plasma.load()', function () {
         {name: 'pkg', src: ['test/fixtures/b.json'], one: 'two'}
       ];
 
-      var expected = {pkg: ['test/fixtures/b.json'], one: 'two'};
+      var expected = {pkg: {ccc: 'dddd'}, one: 'two'};
       expect(plasma.load(fixture)).to.deep.equal(expected);
       done();
     });
 
     it('should return an object with the name from the `name` property', function (done) {
       var fixture = [
-        {expand: true, name: 'pkg', src: ['test/fixtures/b.json'], one: 'two'}
+        {expand: true, name: 'pkg', src: 'test/fixtures/b.json', one: 'two'}
       ];
 
       var expected = {pkg: {ccc: 'dddd'}, one: 'two'};
@@ -319,7 +319,7 @@ describe('plasma.load()', function () {
 describe('when plasma.process() is used on a config object', function () {
   it('should resolve template strings to a configuration value', function (done) {
     var fixture = [{expand: true, name: 'foo', src: ['*.json']}, {bar: '<%= foo %>'}];
-    var expected = file.readJSONSync('test/expected/pkg.json');
+    var expected = file.readJSONSync('test/expected/pkg-foo-bar.json');
 
     expect(plasma.process(fixture)).to.deep.equal(expected);
     done();
@@ -340,11 +340,38 @@ describe('when plasma.process() is used on a config object', function () {
     expect(plasma.process(fixture)).to.deep.equal(expected);
     done();
   });
+
+
+  it('should use the basename of each data file as the namespace for its config object', function (done) {
+    var fixture = [{expand: true, name: ':basename', src: ['*.json']}];
+    var expected = file.readJSONSync('test/expected/bower-pkg.json');
+    expect(plasma.process(fixture)).to.deep.equal(expected);
+    done();
+  });
+
+
+  it('should use the basename of each data file as the namespace for its config object', function (done) {
+    var fixture = [{expand: true, name: ':basename', src: ['test/fixtures/i18n/*.json']}];
+    var expected = file.readJSONSync('test/expected/i18n.json');
+    expect(plasma.process(fixture)).to.deep.equal(expected);
+    done();
+  });
 });
 
 
-console.log(plasma.process('test/fixtures/i18n/*.json'));
 
+/**
+ * These still need to be implemented:
+ */
+
+
+// var data = [
+//   {expand: true, name: 'foo.bar.baz', src: ['foo/*.json']}
+// ];
+
+// var data = [
+//   {expand: true, name: 'i18n.:dirname', src: ['i18n/**/*.json']}
+// ];
 
 
 // describe('when plasma.normalizeString() is used on a string', function () {
@@ -358,5 +385,3 @@ console.log(plasma.process('test/fixtures/i18n/*.json'));
 //     done();
 //   });
 // });
-
-

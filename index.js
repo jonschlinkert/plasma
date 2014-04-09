@@ -17,6 +17,24 @@ function type(val) {
   return Object.prototype.toString.call(val).toLowerCase().replace(/\[object ([\S]+)\]/, '$1');
 }
 
+var detectPattern = function(str) {
+  var re = /:([\S]+)/;
+  if (re.test(str)) {
+    return str.match(re)[1];
+  }
+};
+
+var namespaceFiles = function(arr, obj) {
+  var files = [];
+
+  _.forEach(arr, function(filepath) {
+    var pattern = file[detectPattern(obj.name)](filepath);
+    files = files.concat({name: pattern, src: filepath});
+  });
+
+  return files;
+};
+
 
 /**
  * Convert a string to an object with `expand` and `src` properties
@@ -100,16 +118,23 @@ plasma.normalize = function(config) {
 
 plasma.expand = function(arr, options) {
   options = options || {};
-  var data = [], len = arr.length;
+  var data = [], len = arr.length, files = [];
 
   for (var i = 0; i < len; i++) {
     var obj = arr[i];
     if ('expand' in obj && 'src' in obj) {
       obj.src = file.expand(obj.src, options);
+
+      if ('name' in obj) {
+        if (detectPattern(obj.name)) {
+          files = namespaceFiles(obj.src, obj);
+        }
+      }
     }
+
     data = data.concat(obj);
   }
-  return data;
+  return _.extend(data, files);
 };
 
 
@@ -120,15 +145,13 @@ plasma.expand = function(arr, options) {
  * @return  {[type]}           [description]
  */
 
-plasma.load = function(arr, options) {
-  options = options || {};
+plasma.load = function(config, options) {
+  config = plasma.normalize(config, options || {});
+  config = plasma.expand(config, options || {});
 
-  arr = plasma.normalize(arr, options);
-  arr = plasma.expand(arr, options);
-
-  var data = {}, name = {}, len = arr.length;
+  var data = {}, name = {}, len = config.length;
   for (var i = 0; i < len; i++) {
-    var obj = arr[i];
+    var obj = config[i];
 
     if ('expand' in obj && 'src' in obj) {
       var srcLen = obj.src.length;
@@ -154,8 +177,12 @@ plasma.load = function(arr, options) {
     }
 
     if ('name' in obj && 'src' in obj) {
-      name[obj.name] = obj.src;
-      _.extend(data, name);
+      obj.src = !Array.isArray(obj.src) ? [obj.src] : obj.src;
+
+      _.forEach(obj.src, function(filepath) {
+        name[obj.name] = file.readDataSync(filepath);
+        _.extend(data, name);
+      });
 
       delete data.name;
       delete data.src;
@@ -169,6 +196,14 @@ plasma.load = function(arr, options) {
 };
 
 
+
+/**
+ * Process config templates
+ * @param   {[type]}  obj      [description]
+ * @param   {[type]}  options  [description]
+ * @return  {[type]}           [description]
+ */
+
 plasma.process = function(obj, options) {
   var result = {};
 
@@ -179,4 +214,3 @@ plasma.process = function(obj, options) {
 
   return result;
 };
-

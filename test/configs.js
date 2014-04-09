@@ -128,6 +128,8 @@ var result = {
   }
 };
 
+
+
 var data = [
   {expand: true, name: 'foo.bar.baz', src: ['foo/*.json']}
 ];
