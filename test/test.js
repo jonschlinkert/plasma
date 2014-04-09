@@ -8,7 +8,6 @@
 const expect = require('chai').expect;
 const log = require('verbalize');
 const file = require('fs-utils');
-const _ = require('lodash');
 const plasma = require('../');
 
 log.mode.verbose = false;
@@ -237,7 +236,7 @@ describe('plasma.load()', function () {
   });
 
   describe('when an object is passed to plasma.load()', function () {
-    it('should return the object', function (done) {
+    it('should return the original object', function (done) {
       var fixture = {foo: 'foo', bar: 'bar', baz: 'baz'};
       var expected = {foo: 'foo', bar: 'bar', baz: 'baz'};
       expect(plasma.load(fixture)).to.deep.equal(expected);
@@ -245,8 +244,8 @@ describe('plasma.load()', function () {
     });
   });
 
-  describe('when an object is passed to plasma.load()', function () {
-    it('should return the object', function (done) {
+  describe('when an array of objects is passed to plasma.load()', function () {
+    it('should return an object with unique properties', function (done) {
       var fixture = [
         {foo: 'foo', bar: 'bar', baz: 'baz'},
         {bar: 'bar', baz: 'foo', bang: 'boom'}
@@ -261,4 +260,103 @@ describe('plasma.load()', function () {
       done();
     });
   });
+
+  describe('when an array with mixed values is passed to plasma.load()', function () {
+    it('should do stuff with each value', function (done) {
+      var fixture = [
+        'test/fixtures/pkg/*.json',
+        {quux: '*.json'},
+        {expand: true, name: 'package', src: ['test/fixtures/pkg/*.json'], one: 'two'}
+      ];
+
+      var expected = file.readJSONSync('test/expected/mixed-values.json');
+      expect(plasma.load(fixture)).to.deep.equal(expected);
+      done();
+    });
+  });
+
+
+  describe('when both the `name` property and the `src` are used', function () {
+    it('should return an object with the name from the `name` property', function (done) {
+      var fixture = [
+        {one: 'two'},
+        {name: 'pkg', src: ['test/fixtures/pkg/*.json']}
+      ];
+
+      var expected = {pkg: ['test/fixtures/pkg/*.json'], one: 'two'};
+      expect(plasma.load(fixture)).to.deep.equal(expected);
+      done();
+    });
+
+    it('should return an object with the name from the `name` property', function (done) {
+      var fixture = [
+        {name: 'pkg', src: ['test/fixtures/b.json'], one: 'two'}
+      ];
+
+      var expected = {pkg: ['test/fixtures/b.json'], one: 'two'};
+      expect(plasma.load(fixture)).to.deep.equal(expected);
+      done();
+    });
+
+    it('should return an object with the name from the `name` property', function (done) {
+      var fixture = [
+        {expand: true, name: 'pkg', src: ['test/fixtures/b.json'], one: 'two'}
+      ];
+
+      var expected = {pkg: {ccc: 'dddd'}, one: 'two'};
+      expect(plasma.load(fixture)).to.deep.equal(expected);
+      done();
+    });
+  });
 });
+
+
+
+/**
+ * plasma.process()
+ */
+
+describe('when plasma.process() is used on a config object', function () {
+  it('should resolve template strings to a configuration value', function (done) {
+    var fixture = [{expand: true, name: 'foo', src: ['*.json']}, {bar: '<%= foo %>'}];
+    var expected = file.readJSONSync('test/expected/pkg.json');
+
+    expect(plasma.process(fixture)).to.deep.equal(expected);
+    done();
+  });
+
+  it('should resolve template strings to a configuration value', function (done) {
+    var fixture = [{a: 'b'}, {c: '<%= a %>'}];
+    var expected = {a: 'b', c: 'b'};
+
+    expect(plasma.process(fixture)).to.deep.equal(expected);
+    done();
+  });
+
+  it('should resolve template strings to a configuration value', function (done) {
+    var fixture = [{a: {b: 'c', d: 'e'}}, {f: '<%= a.b %>'}];
+    var expected = {a: {b: 'c', d: 'e'},  f: 'c'};
+
+    expect(plasma.process(fixture)).to.deep.equal(expected);
+    done();
+  });
+});
+
+
+console.log(plasma.process('test/fixtures/i18n/*.json'));
+
+
+
+// describe('when plasma.normalizeString() is used on a string', function () {
+//   it('should return an object with the name from the `name` property', function (done) {
+//     var fixture = [
+//       {traverse: true, expand: true, name: '<%= a.b.c %>', src: ['test/fixtures/*.{json,yml}'], one: {two: 'three'}}
+//     ];
+
+//     var expected = {pkg: {ccc: 'dddd'}, one: 'two'};
+//     expect(plasma.load(fixture)).to.deep.equal(expected);
+//     done();
+//   });
+// });
+
+

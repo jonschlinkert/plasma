@@ -6,6 +6,7 @@
  */
 
 const file = require('fs-utils');
+const expander = require('expander');
 const log = require('verbalize');
 const _ = require('lodash');
 
@@ -98,6 +99,7 @@ plasma.normalize = function(config) {
  */
 
 plasma.expand = function(arr, options) {
+  options = options || {};
   var data = [], len = arr.length;
 
   for (var i = 0; i < len; i++) {
@@ -119,9 +121,12 @@ plasma.expand = function(arr, options) {
  */
 
 plasma.load = function(arr, options) {
-  arr = plasma.expand(plasma.normalize(arr, options), options);
-  var data = {}, name = {}, len = arr.length;
+  options = options || {};
 
+  arr = plasma.normalize(arr, options);
+  arr = plasma.expand(arr, options);
+
+  var data = {}, name = {}, len = arr.length;
   for (var i = 0; i < len; i++) {
     var obj = arr[i];
 
@@ -143,12 +148,18 @@ plasma.load = function(arr, options) {
 
       delete obj.expand;
       delete obj.src;
+
+    } else {
+      _.extend(data, obj);
     }
 
     if ('name' in obj && 'src' in obj) {
       name[obj.name] = obj.src;
       _.extend(data, name);
+
+      delete data.name;
       delete data.src;
+
     } else {
       _.extend(data, obj);
     }
@@ -156,3 +167,16 @@ plasma.load = function(arr, options) {
 
   return data;
 };
+
+
+plasma.process = function(obj, options) {
+  var result = {};
+
+  obj = plasma.load(obj, options || {});
+  Object.keys(obj).forEach(function(key) {
+    result[key] = expander.process(obj, obj[key], options || {});
+  });
+
+  return result;
+};
+

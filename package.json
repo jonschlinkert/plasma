@@ -23,16 +23,14 @@
     "node": ">= 0.8.0"
   },
   "dependencies": {
-    "async": "~0.2.10",
-    "globule": "~0.2.0",
+    "fs-utils": "~0.4.0",
     "lodash": "~2.4.1",
     "verbalize": "~0.1.2",
-    "fs-utils": "~0.4.0"
+    "expander": "~0.3.3"
   },
   "devDependencies": {
     "mocha": "~1.17.0",
-    "chai": "~1.8.1",
-    "minimist": "0.0.8"
+    "chai": "~1.8.1"
   },
   "keywords": [
     "file system",

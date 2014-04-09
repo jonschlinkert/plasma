@@ -1,5 +1,5 @@
 
-const expect = require('chai').expect
+const expect = require('chai').expect;
 const log = require('verbalize');
 const file = require('fs-utils');
 const _ = require('lodash');
@@ -9,7 +9,7 @@ var expectedData = function(filename) {
   return file.readDataSync('test/expected/' + filename);
 };
 
-describe('plasma.load(config)', function () {
+describe('plasma.load()', function () {
 
   /*
    *
@@ -30,8 +30,6 @@ describe('plasma.load(config)', function () {
     };
     var expected = expectedData('load/string/a.json');
     var actual = plasma.load(config.data);
-    console.log('actual', actual);
-    console.log('expected', expected);
     expect(actual).to.eql(expected);
     done();
   });
