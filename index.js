@@ -21,6 +21,9 @@ var namespaceFiles = utils.namespaceFiles;
 var namespaceObject = utils.namespaceObject;
 
 
+plasma.cwd = process.cwd();
+
+
 /**
  * Convert a string to an object with `expand` and `src` properties
  * Also adds the `__normalized__` heuristic, so that augmented
@@ -105,7 +108,7 @@ plasma.normalize = function(config, options) {
  */
 
 plasma.expand = function(arr, options) {
-  options = options || {};
+  options = _.extend({cwd: plasma.cwd}, options || {});
   var data = [], len = arr.length, files = [];
 
   for (var i = 0; i < len; i++) {
@@ -113,16 +116,11 @@ plasma.expand = function(arr, options) {
     if ('expand' in obj && 'src' in obj) {
       obj.src = glob.find(_.extend(options, obj));
       obj.src = utils.normalizeNL(obj.src);
-    }
 
-    if ('name' in obj && 'src' in obj) {
-      // If `:pattern` is used in obj.name, that means
-      // we want to add the data from each file in the `src`
-      // array to the corresponding pattern, e.g. `:basename`
-      // means that each file will be added to an object
-      // named after the basename of the file.
-      if (detectPattern(obj.name)) {
-        files = namespaceFiles(obj.src, detectPattern(obj.name));
+      if (!obj.name && !options.noname) {
+        // Add each file will to an object
+        // named after the basename of the file.
+        files = namespaceFiles(obj.src);
       }
     }
 
@@ -153,6 +151,8 @@ plasma.load = function(config, options) {
       var meta = {}, hash = {}, hashCache = {};
       for (var j = 0; j < srcLen; j++) {
         var src = obj.src[j];
+        console.log(src);
+
         if ('hash' in obj && 'name' in obj) {
           _.extend(hashCache, file.readDataSync(src));
         } else {

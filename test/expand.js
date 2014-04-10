@@ -12,7 +12,7 @@ const plasma = require('../');
 describe('when plasma.expand() is used on an array of objects:', function () {
   describe('when an object has `expand: true` and a src property:', function () {
     it('should assume the src property defined file paths and try to expand them', function (done) {
-      var fixture = [{expand: true, name: 'foo', src: ['*.json']}];
+      var fixture = [{name: 'foo', src: ['*.json']}];
       var expected = [
         {expand: true, name: 'foo', src: ['bower.json', 'package.json']}
       ];
@@ -21,9 +21,9 @@ describe('when plasma.expand() is used on an array of objects:', function () {
     });
   });
 
-  describe('when an object has does NOT have `expand: true` but DOES have a src property:', function () {
-    it('should assume the src property is NOT file paths and should NOT try to expand them', function (done) {
-      var fixture = [{name: 'foo', src: ['*.json']}];
+  describe('when an object has `expand:false`:', function () {
+    it('hould NOT expand filepaths', function (done) {
+      var fixture = [{expand: false, name: 'foo', src: ['*.json']}];
       var expected = [
         {name: 'foo', src: ['*.json']}
       ];
@@ -32,11 +32,11 @@ describe('when plasma.expand() is used on an array of objects:', function () {
     });
   });
 
-  describe('when an object has `expand: true` but DOES NOT have a src property:', function () {
+  describe('when an object has `name` but DOES NOT have `src`:', function () {
     it('should do nothing an return the object as-is.', function (done) {
-      var fixture = [{expand: true, name: 'foo', files: ['*.json']}];
+      var fixture = [{name: 'foo', files: ['*.json']}];
       var expected = [
-        {expand: true, name: 'foo', files: ['*.json']}
+        {name: 'foo', files: ['*.json']}
       ];
       expect(plasma.expand(fixture)).to.deep.equal(expected);
       done();
