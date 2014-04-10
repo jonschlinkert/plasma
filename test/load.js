@@ -14,10 +14,6 @@ var expectedData = function(filename) {
 };
 
 
-/**
- * plasma.load()
- */
-
 describe('plasma.load()', function () {
 
   describe('when a file path is passed as a string', function () {

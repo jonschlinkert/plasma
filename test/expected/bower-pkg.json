@@ -1,4 +1,11 @@
 {
+  "bower": {
+    "name": "plasma",
+    "version": "0.1.1",
+    "main": [
+      "index.js"
+    ]
+  },
   "package": {
     "name": "plasma",
     "version": "0.1.1",
@@ -37,13 +44,6 @@
       "config",
       "load",
       "utils"
-    ]
-  },
-  "bower": {
-    "name": "plasma",
-    "version": "0.1.1",
-    "main": [
-      "index.js"
     ]
   }
 }

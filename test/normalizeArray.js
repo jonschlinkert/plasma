@@ -9,8 +9,6 @@ const expect = require('chai').expect;
 const plasma = require('../');
 
 
-
-// plasma.normalizeArray()
 describe('when plasma.normalizeArray() is used on an array of strings', function () {
   it('should convert the array of strings to an array of objects, each with `expand` and `src` properties', function (done) {
     var fixture = ['foo/*.json', 'bar/*.json'];

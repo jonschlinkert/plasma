@@ -9,10 +9,6 @@ const expect = require('chai').expect;
 const plasma = require('../');
 
 
-/**
- * plasma.expand()
- */
-
 describe('when plasma.expand() is used on an array of objects:', function () {
   describe('when an object has `expand: true` and a src property:', function () {
     it('should assume the src property defined file paths and try to expand them', function (done) {

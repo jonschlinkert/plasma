@@ -3,6 +3,7 @@
     "select-language": "Wählen Sie eine Sprache"
   },
   "en": {
+    "name": "baaaaar",
     "es": {
       "select-language": "Seleccione el idioma"
     },
@@ -28,6 +29,7 @@
       "select-language": "Selecteer taal"
     },
     "ta": {
+      "name": "foooo",
       "select-language": "மொழி தேர்வு"
     }
   },
@@ -53,6 +55,7 @@
     "select-language": "Selecteer taal"
   },
   "ta": {
+    "name": "foooo",
     "select-language": "மொழி தேர்வு"
   }
 }

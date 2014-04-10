@@ -1,7 +1,7 @@
 {
   "name": "plasma",
   "version": "0.1.1",
-  "description": "Load JSON/YAML data files with flexible config formats and minimatch/glob patterns.",
+  "description": "Build a context object to pass to templates. Plasma can load data from a flexible range of configuration and files formats, including JSON/YAML data files defined with minimatch/glob patterns.",
   "repository": {
     "type": "git",
     "url": "https://github.com/jonschlinkert/plasma.git"
@@ -31,7 +31,8 @@
   },
   "devDependencies": {
     "chai": "~1.8.1",
-    "mocha": "~1.17.0"
+    "mocha": "~1.17.0",
+    "fs-utils": "~0.4.0"
   },
   "keywords": [
     "config",

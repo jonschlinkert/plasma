@@ -9,10 +9,6 @@ const expect = require('chai').expect;
 const plasma = require('../');
 
 
-/**
- * plasma.normalize()
- */
-
 describe('plasma.normalize()', function () {
 
   // String
