@@ -56,7 +56,6 @@ describe('globule:', function () {
   describe('when an object is passed to plasma.load()', function () {
     it('globule should read the files, and plasma.load() should return an object', function (done) {
       var fixture = {
-        expand: true,
         prefixBase: true,
         cwd: 'test/fixtures',
         src: '*.{json,yml}'

@@ -10,11 +10,11 @@ const plasma = require('../');
 
 
 describe('when plasma.normalizeArray() is used on an array of strings', function () {
-  it('should convert the array of strings to an array of objects, each with `expand` and `src` properties', function (done) {
+  it('should convert the array of strings to an array of objects, each with `__normalized__` and `src` properties', function (done) {
     var fixture = ['foo/*.json', 'bar/*.json'];
     var expected = [
-      {__normalized__: true, expand: true, src: ['foo/*.json']},
-      {__normalized__: true, expand: true, src: ['bar/*.json']}
+      {__normalized__: true, src: ['foo/*.json']},
+      {__normalized__: true, src: ['bar/*.json']}
     ];
     expect(plasma.normalizeArray(fixture)).to.deep.equal(expected);
     done();

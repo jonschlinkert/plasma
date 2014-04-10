@@ -11,9 +11,9 @@ const plasma = require('../');
 
 // plasma.normalizeString()
 describe('when plasma.normalizeString() is used on a string', function () {
-  it('should convert the string to an object with `expand` and `src` properties', function (done) {
+  it('should convert the string to an object with `__normalized__` and `src` properties', function (done) {
     var fixture = 'foo/*.json';
-    var expected = {__normalized__: true, expand: true, src: ['foo/*.json']};
+    var expected = {__normalized__: true, src: ['foo/*.json']};
     expect(plasma.normalizeString(fixture)).to.deep.equal(expected);
     done();
   });

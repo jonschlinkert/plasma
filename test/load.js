@@ -113,7 +113,7 @@ describe('plasma.load()', function () {
 
     it('should return an object with the name from the `name` property', function (done) {
       var fixture = [
-        {expand: true, name: 'pkg', src: 'test/fixtures/b.json', one: 'two'}
+        {name: 'pkg', src: 'test/fixtures/b.json', one: 'two'}
       ];
 
       var expected = {pkg: {ccc: 'dddd'}, one: 'two'};
@@ -128,7 +128,7 @@ describe('plasma.load()', function () {
       var fixture = [
         'test/fixtures/pkg/*.json',
         {quux: '*.json'},
-        {expand: true, name: 'package', src: ['test/fixtures/pkg/*.json'], one: 'two'}
+        {name: 'package', src: ['test/fixtures/pkg/*.json'], one: 'two'}
       ];
 
       var expected = file.readJSONSync('test/expected/mixed-values.json');
@@ -143,8 +143,8 @@ describe('plasma.load()', function () {
         'test/fixtures/pkg/*.json',
         {quux: '*.json'},
         'test/fixtures/*.yml',
-        {expand: true, src: ['test/fixtures/i18n/*.json', 'test/fixtures/load/**/*.json']},
-        {expand: true, name: 'package', src: ['test/fixtures/pkg/*.json'], one: 'two'},
+        {src: ['test/fixtures/i18n/*.json', 'test/fixtures/load/**/*.json']},
+        {name: 'package', src: ['test/fixtures/pkg/*.json'], one: 'two'},
         {name: 'overwritten', version: 'infinity'}
       ];
 
@@ -161,8 +161,8 @@ describe('plasma.load()', function () {
   //       'test/fixtures/pkg/*.json',
   //       {quux: '*.json'},
   //       'test/fixtures/*.yml',
-  //       {expand: true, src: ['test/fixtures/i18n/*.json', 'test/fixtures/load/**/*.json']},
-  //       {expand: true, name: 'package', src: ['test/fixtures/pkg/*.json'], one: 'two'},
+  //       {src: ['test/fixtures/i18n/*.json', 'test/fixtures/load/**/*.json']},
+  //       {name: 'package', src: ['test/fixtures/pkg/*.json'], one: 'two'},
   //       {name: 'overwritten', version: 'infinity'}
   //     ];
 

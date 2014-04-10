@@ -13,10 +13,10 @@ describe('plasma.normalize()', function () {
 
   // String
   describe('when plasma.normalize() is used on a string', function () {
-    it('should return an array of objects, each with `expand` and `src` properties', function (done) {
+    it('should return an array of objects, each with `__normalized__` and `src` properties', function (done) {
       var fixture = 'foo/*.json';
       var expected = [
-        {__normalized__: true, expand: true, src: ['foo/*.json']}
+        {__normalized__: true, src: ['foo/*.json']}
       ];
       expect(plasma.normalize(fixture)).to.deep.equal(expected);
       done();
@@ -35,9 +35,9 @@ describe('plasma.normalize()', function () {
     });
 
     it('should return an array containing the original object', function (done) {
-      var fixture = {expand: true, name: 'foo', src: ['*.json']};
+      var fixture = {name: 'foo', src: ['*.json']};
       var expected = [
-        {expand: true, name: 'foo', src: ['*.json']}
+        {name: 'foo', src: ['*.json']}
       ];
 
       expect(plasma.normalize(fixture)).to.deep.equal(expected);
@@ -47,11 +47,11 @@ describe('plasma.normalize()', function () {
 
   // Array of strings
   describe('when plasma.normalize() is used on an array of strings', function () {
-    it('should return an array of objects, each with `expand` and `src` properties', function (done) {
+    it('should return an array of objects, each with `__normalized__` and `src` properties', function (done) {
       var fixture = ['foo/*.json', 'bar/*.json'];
       var expected = [
-        {__normalized__: true, expand: true, src: ['foo/*.json']},
-        {__normalized__: true, expand: true, src: ['bar/*.json']}
+        {__normalized__: true, src: ['foo/*.json']},
+        {__normalized__: true, src: ['bar/*.json']}
       ];
       expect(plasma.normalize(fixture)).to.deep.equal(expected);
       done();
@@ -77,12 +77,12 @@ describe('plasma.normalize()', function () {
     it('should return the array of objects unmodified', function (done) {
       var fixture = [
         {quux: 'foo/*.json'},
-        {expand: true, name: 'foo', src: ['foo/*.json']},
+        {name: 'foo', src: ['foo/*.json']},
       ];
 
       var expected = [
         {quux: 'foo/*.json'},
-        {expand: true, name: 'foo', src: ['foo/*.json']},
+        {name: 'foo', src: ['foo/*.json']},
       ];
       expect(plasma.normalize(fixture)).to.deep.equal(expected);
       done();
@@ -91,14 +91,14 @@ describe('plasma.normalize()', function () {
 
   // Mixed values
   describe('when plasma.normalize() is used on an array containing mixed values (strings and objects)', function () {
-    it('should return an array of objects, where each original object in the array is returned unmodified, and each string is converted to an object with `src` and `expand` properties', function (done) {
+    it('should return an array of objects, where each original object in the array is returned unmodified, and each string is converted to an object with `src` and `__normalized__` properties', function (done) {
       var fixture = [
         'foo/*.json',
-        {expand: true, name: 'foo', src: ['foo/*.json']}
+        {name: 'foo', src: ['foo/*.json']}
       ];
       var expected = [
-        {__normalized__: true, expand: true, src: ['foo/*.json']},
-        {expand: true, name: 'foo', src: ['foo/*.json']}
+        {__normalized__: true, src: ['foo/*.json']},
+        {name: 'foo', src: ['foo/*.json']}
       ];
       expect(plasma.normalize(fixture)).to.deep.equal(expected);
       done();
