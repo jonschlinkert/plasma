@@ -16,7 +16,7 @@ describe('plasma.normalize()', function () {
     it('should return an array of objects, each with `expand` and `src` properties', function (done) {
       var fixture = 'foo/*.json';
       var expected = [
-        {expand: true, src: ['foo/*.json']}
+        {__normalized__: true, expand: true, src: ['foo/*.json']}
       ];
       expect(plasma.normalize(fixture)).to.deep.equal(expected);
       done();
@@ -50,8 +50,8 @@ describe('plasma.normalize()', function () {
     it('should return an array of objects, each with `expand` and `src` properties', function (done) {
       var fixture = ['foo/*.json', 'bar/*.json'];
       var expected = [
-        {expand: true, src: ['foo/*.json']},
-        {expand: true, src: ['bar/*.json']}
+        {__normalized__: true, expand: true, src: ['foo/*.json']},
+        {__normalized__: true, expand: true, src: ['bar/*.json']}
       ];
       expect(plasma.normalize(fixture)).to.deep.equal(expected);
       done();
@@ -97,7 +97,7 @@ describe('plasma.normalize()', function () {
         {expand: true, name: 'foo', src: ['foo/*.json']}
       ];
       var expected = [
-        {expand: true, src: ['foo/*.json']},
+        {__normalized__: true, expand: true, src: ['foo/*.json']},
         {expand: true, name: 'foo', src: ['foo/*.json']}
       ];
       expect(plasma.normalize(fixture)).to.deep.equal(expected);

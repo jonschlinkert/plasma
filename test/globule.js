@@ -22,9 +22,7 @@ describe('when options are passed:', function () {
       prefixBase: true
     });
     var expected = {
-      a: 'This value is from a.json',
-      cwd: 'test/fixtures/load/string',
-      prefixBase: true
+      a: 'This value is from a.json'
     };
     expect(actual).to.eql(expected);
     done();

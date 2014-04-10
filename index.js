@@ -22,6 +22,8 @@ var namespaceObject = utils.namespaceObject;
 
 /**
  * Convert a string to an object with `expand` and `src` properties
+ * Also adds the `__normalized__` heuristic, so that augmented
+ * properties can be unset later.
  *
  * @param   {String}  str  The string to convert
  * @return  {Object}
@@ -30,8 +32,7 @@ var namespaceObject = utils.namespaceObject;
  */
 
 plasma.normalizeString = function(str) {
-  // return {__normalized__: true, expand: true, src: [str]};
-  return {expand: true, src: [str]};
+  return {__normalized__: true, expand: true, src: [str]};
 };
 
 
@@ -109,7 +110,8 @@ plasma.expand = function(arr, options) {
   for (var i = 0; i < len; i++) {
     var obj = arr[i];
     if ('expand' in obj && 'src' in obj) {
-      obj.src = glob.find(_.extend(obj, options));
+      obj.src = glob.find(_.extend(options, obj));
+      obj.src = utils.normalizeNL(obj.src);
 
       if ('name' in obj) {
         if (detectPattern(obj.name)) {
@@ -151,13 +153,17 @@ plasma.load = function(config, options) {
       if ('name' in obj) {
         name[obj.name] = meta;
         _.extend(data, name);
-        delete obj.name;
+        if (!options.retain) {
+          delete obj.name;
+        }
       } else {
         _.extend(data, meta);
       }
 
-      delete obj.expand;
-      delete obj.src;
+      if (!options.retain) {
+        delete obj.expand;
+        delete obj.src;
+      }
 
     } else {
       _.extend(data, obj);
@@ -168,15 +174,23 @@ plasma.load = function(config, options) {
 
       _.extend(data, namespaceObject(obj.src, obj.name));
 
-      delete data.name;
-      delete data.src;
+      if (!options.retain) {
+        delete data.name;
+        delete data.src;
+      }
 
     } else {
       _.extend(data, obj);
     }
   }
 
-  // delete data.__normalized__;
+  // Clean up temporary props from normalized objects
+  if ('__normalized__' in data) {
+    delete data.__normalized__;
+    delete data.expand;
+    delete data.src;
+  }
+
   return data;
 };
 
