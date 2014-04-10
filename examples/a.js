@@ -21,33 +21,33 @@ var config = [
   ['test/fixtures/*.json', 'test/fixtures/*.yml', {src: ['test/fixtures/a/*.json'], name: 'f', expand: false}]
 ];
 
-function loadConfig(config) {
+function loadConfig(arr) {
   var obj = {};
 
-  config.map(function(arr) {
-    _.merge(obj, plasma.load(arr));
+  arr.map(function(c) {
+    _.merge(obj, plasma.load(c));
   });
 
   return obj;
 }
 file.writeJSONSync('tmp/loadConfig-a.json', loadConfig(config));
 
-function extendConfig(config) {
+function extendConfig(arr) {
   var obj = {};
 
-  config.map(function(arr) {
-    _.extend(obj, plasma.load(arr));
+  arr.map(function(c) {
+    _.extend(obj, plasma.load(c));
   });
 
   return obj;
 }
 file.writeJSONSync('tmp/extendConfig-a.json', extendConfig(config));
 
-function mergeConfig(config) {
+function mergeConfig(arr) {
   var obj = {};
 
-  config.map(function(arr) {
-    _.merge(obj, plasma.load(arr));
+  arr.map(function(c) {
+    _.merge(obj, plasma.load(c));
   });
 
   return obj;

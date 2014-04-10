@@ -21,38 +21,40 @@ var config = [
   ['test/fixtures/*.json', 'test/fixtures/*.yml', {src: ['test/fixtures/a/*.json'], name: 'f', expand: false}]
 ];
 
+
 function loadConfig(arr) {
   var data = _.cloneDeep(arr);
   var obj = {};
 
-  data.map(function(config) {
-    _.merge(obj, plasma.load(config));
+  data.map(function(c) {
+    _.merge(obj, plasma.load(c));
   });
 
   return obj;
 }
 file.writeJSONSync('tmp/loadConfig-b.json', loadConfig(config));
 
+
 function extendConfig(arr) {
   var data = _.cloneDeep(arr);
   var obj = {};
 
-  data.map(function(config) {
-    _.extend(obj, plasma.load(config));
+  data.map(function(c) {
+    _.extend(obj, plasma.load(c));
   });
 
   return obj;
 }
 file.writeJSONSync('tmp/extendConfig-b.json', extendConfig(config));
 
+
 function mergeConfig(arr) {
   var data = _.cloneDeep(arr);
   var obj = {};
 
-  data.map(function(config) {
-    _.merge(obj, plasma.load(config));
+  data.map(function(c) {
+    _.merge(obj, plasma.load(c));
   });
-
   return obj;
 }
 file.writeJSONSync('tmp/mergeConfig-b.json', mergeConfig(config));

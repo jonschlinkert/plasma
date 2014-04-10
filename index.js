@@ -112,7 +112,7 @@ plasma.expand = function(config, options) {
   for (var i = 0; i < len; i++) {
     var obj = config[i];
     if (!(obj.expand === false) && 'src' in obj) {
-      obj.src = glob.find(_.extend(obj, {nonull: true}, options));
+      obj.src = glob.find(_.merge(obj, {nonull: true}, options));
       obj.src = utils.normalizeNL(obj.src);
     }
 
@@ -129,7 +129,7 @@ plasma.expand = function(config, options) {
 
     data = data.concat(obj);
   }
-  return _.extend(data, files);
+  return _.merge(data, files);
 };
 
 
@@ -156,34 +156,34 @@ plasma.load = function(config, options) {
         var src = obj.src[j];
         if ('hash' in obj && 'name' in obj) {
           if (file.exists(src)) {
-            _.extend(hashCache, file.readDataSync(src));
+            _.merge(hashCache, file.readDataSync(src));
           } else {
-            _.extend(hashCache, src);
+            _.merge(hashCache, src);
           }
         } else {
           if (file.exists(src)) {
-            _.extend(meta, file.readDataSync(src));
+            _.merge(meta, file.readDataSync(src));
           } else {
-            _.extend(meta, src);
+            _.merge(meta, src);
           }
         }
       }
 
       if ('hash' in obj && 'name' in obj) {
         hash[obj.name] = hashCache;
-        _.extend(meta, expandHash(hash) || {});
+        _.merge(meta, expandHash(hash) || {});
         delete obj.hash;
         delete obj.name;
       }
 
       if ('name' in obj) {
         name[obj.name] = meta;
-        _.extend(data, name);
+        _.merge(data, name);
         if (!options.retain) {
           delete obj.name;
         }
       } else {
-        _.extend(data, meta);
+        _.merge(data, meta);
       }
 
       if (!options.retain) {
@@ -192,13 +192,13 @@ plasma.load = function(config, options) {
       }
 
     } else {
-      _.extend(data, obj);
+      _.merge(data, obj);
     }
 
     if ('name' in obj && 'src' in obj) {
       obj.src = utils.arrayify(obj.src);
 
-      _.extend(data, namespaceObject(obj.src, obj.name));
+      _.merge(data, namespaceObject(obj.src, obj.name));
 
       if (!options.retain) {
         delete data.name;
@@ -206,7 +206,7 @@ plasma.load = function(config, options) {
       }
 
     } else {
-      _.extend(data, obj);
+      _.merge(data, obj);
     }
   }
   // Clean up temporary props from normalized objects
