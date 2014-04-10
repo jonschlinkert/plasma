@@ -30,6 +30,7 @@ var namespaceObject = utils.namespaceObject;
  */
 
 plasma.normalizeString = function(str) {
+  // return {__normalized__: true, expand: true, src: [str]};
   return {expand: true, src: [str]};
 };
 
@@ -72,15 +73,16 @@ plasma.normalizeArray = function (arr) {
  * @api public
  */
 
-plasma.normalize = function(config) {
+plasma.normalize = function(config, options) {
+  options = options || {};
   var data = [];
 
   log.verbose.inform('normalizing');
 
   if (type(config) === 'string') {
-    data = data.concat(plasma.normalizeString(config));
+    data = data.concat(plasma.normalizeString(config, options));
   } else if (type(config) === 'array') {
-    data = data.concat(plasma.normalizeArray(config));
+    data = data.concat(plasma.normalizeArray(config, options));
   } else if (type(config) === 'object') {
     data = data.concat(config);
   }
@@ -107,7 +109,7 @@ plasma.expand = function(arr, options) {
   for (var i = 0; i < len; i++) {
     var obj = arr[i];
     if ('expand' in obj && 'src' in obj) {
-      obj.src = glob.find(obj.src, options);
+      obj.src = glob.find(_.extend(obj, options));
 
       if ('name' in obj) {
         if (detectPattern(obj.name)) {
@@ -130,8 +132,9 @@ plasma.expand = function(arr, options) {
  */
 
 plasma.load = function(config, options) {
-  config = plasma.normalize(config, options || {});
-  config = plasma.expand(config, options || {});
+  options = options || {};
+  config = plasma.normalize(config, options);
+  config = plasma.expand(config, options);
 
   var data = {}, name = {}, len = config.length;
   for (var i = 0; i < len; i++) {
@@ -173,6 +176,7 @@ plasma.load = function(config, options) {
     }
   }
 
+  // delete data.__normalized__;
   return data;
 };
 
