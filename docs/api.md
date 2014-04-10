@@ -68,13 +68,9 @@ it will be normalized to:
 ```
 
 ## expand
-Type: `undefined`
 
-Default: `undefined`
-
-
+_(TODO)_
 
 ## process
-Type: `undefined`
 
-Default: `undefined`
+_(TODO)_

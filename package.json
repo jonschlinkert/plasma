@@ -33,7 +33,8 @@
   "devDependencies": {
     "chai": "~1.8.1",
     "mocha": "~1.17.0",
-    "fs-utils": "~0.4.0"
+    "fs-utils": "~0.4.0",
+    "verb": "~0.2.1"
   },
   "keywords": [
     "config",
