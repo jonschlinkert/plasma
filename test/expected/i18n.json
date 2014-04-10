@@ -4,9 +4,7 @@
   },
   "en": {
     "name": "baaaaar",
-    "es": {
-      "select-language": "Seleccione el idioma"
-    },
+    "es": "bar",
     "de": {
       "select-language": "Wählen Sie eine Sprache"
     },
@@ -34,6 +32,7 @@
     }
   },
   "es": {
+    "foo": "bar",
     "select-language": "Seleccione el idioma"
   },
   "fi": {
