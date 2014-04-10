@@ -1,0 +1,13 @@
+{
+  "aaa": "bbbb",
+  "bbb": "cccc",
+  "eee": "ffff",
+  "foo": {
+    "baz": {
+      "aaa": "bbbb"
+    }
+  },
+  "one": {
+    "two": "three"
+  }
+}

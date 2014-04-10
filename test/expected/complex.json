@@ -1,0 +1,110 @@
+{
+  "name": "overwritten",
+  "version": "infinity",
+  "description": "Normalize config formats, expand globbing/minimatch patterns and read-in JSON/YAML data files.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jonschlinkert/plasma.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jonschlinkert/plasma/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/jonschlinkert/plasma/blob/master/LICENSE-MIT"
+    }
+  ],
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "engines": {
+    "node": ">= 0.8.0"
+  },
+  "dependencies": {
+    "async": "~0.2.10",
+    "globule": "~0.2.0",
+    "lodash": "~2.4.1",
+    "verbalize": "~0.1.2",
+    "fs-utils": "~0.4.0"
+  },
+  "devDependencies": {
+    "mocha": "~1.17.0",
+    "chai": "~1.8.1",
+    "minimist": "0.0.8"
+  },
+  "keywords": [
+    "file system",
+    "file",
+    "fs",
+    "node",
+    "node.js",
+    "path",
+    "utils"
+  ],
+  "quux": "*.json",
+  "aaa": "bbbb",
+  "select-language": "மொழி தேர்வு",
+  "es": "<%= es %>",
+  "de": "<%= de %>",
+  "fi": "<%= fi %>",
+  "he": "<%= he %>",
+  "hi": "<%= hi %>",
+  "ja": "<%= ja %>",
+  "ml": "<%= ml %>",
+  "nl": "<%= nl %>",
+  "ta": "<%= ta %>",
+  "a": "This value is from a.json",
+  "b": "This value is from b.json",
+  "c": "This value is from cde.json in property c",
+  "d": "This value is from cde.json in property d",
+  "e": "This value is from cde.json in property e",
+  "package": {
+    "name": "plasma",
+    "version": "0.1.1",
+    "description": "Normalize config formats, expand globbing/minimatch patterns and read-in JSON/YAML data files.",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/jonschlinkert/plasma.git"
+    },
+    "bugs": {
+      "url": "https://github.com/jonschlinkert/plasma/issues"
+    },
+    "licenses": [
+      {
+        "type": "MIT",
+        "url": "https://github.com/jonschlinkert/plasma/blob/master/LICENSE-MIT"
+      }
+    ],
+    "main": "index.js",
+    "scripts": {
+      "test": "mocha"
+    },
+    "engines": {
+      "node": ">= 0.8.0"
+    },
+    "dependencies": {
+      "async": "~0.2.10",
+      "globule": "~0.2.0",
+      "lodash": "~2.4.1",
+      "verbalize": "~0.1.2",
+      "fs-utils": "~0.4.0"
+    },
+    "devDependencies": {
+      "mocha": "~1.17.0",
+      "chai": "~1.8.1",
+      "minimist": "0.0.8"
+    },
+    "keywords": [
+      "file system",
+      "file",
+      "fs",
+      "node",
+      "node.js",
+      "path",
+      "utils"
+    ]
+  },
+  "one": "two"
+}

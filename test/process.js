@@ -40,7 +40,7 @@ describe('when plasma.process() is used on a config object', function () {
     var fixture = [{expand: true, name: ':basename', src: ['test/fixtures/bower-pkg/*.json']}];
     var expected = file.readJSONSync('test/expected/bower-pkg.json');
     var actual = plasma.process(fixture);
-    file.writeJSONSync('tmp/bower-pkg.json', actual);
+
     expect(actual).to.deep.equal(expected);
     done();
   });
@@ -49,7 +49,7 @@ describe('when plasma.process() is used on a config object', function () {
     var fixture = [{expand: true, name: ':basename', src: ['test/fixtures/i18n/*.json'] }];
     var expected = file.readJSONSync('test/expected/i18n.json');
     var actual = plasma.process(fixture);
-    file.writeJSONSync('tmp/i18n.json', actual);
+
     expect(actual).to.deep.equal(expected);
     done();
   });

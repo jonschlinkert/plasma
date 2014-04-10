@@ -6,12 +6,8 @@
  */
 
 const expect = require('chai').expect;
-const file = require('read-data');
 const plasma = require('../');
 
-var expectedData = function (filename) {
-  return file.readDataSync('test/expected/' + filename);
-};
 
 // Ensure that globule is getting passed options
 describe('when options are passed:', function () {

@@ -5,10 +5,10 @@
  * Licensed under the MIT license.
  */
 
-const path = require('path');
-const file = require('read-data');
+const file = require('fs-utils');
 const glob = require('globule');
 const expander = require('expander');
+const expandHash = require('expand-hash');
 const log = require('verbalize');
 const _ = require('lodash');
 
@@ -19,6 +19,7 @@ var type = utils.type;
 var detectPattern = utils.detectPattern;
 var namespaceFiles = utils.namespaceFiles;
 var namespaceObject = utils.namespaceObject;
+
 
 /**
  * Convert a string to an object with `expand` and `src` properties
@@ -112,11 +113,16 @@ plasma.expand = function(arr, options) {
     if ('expand' in obj && 'src' in obj) {
       obj.src = glob.find(_.extend(options, obj));
       obj.src = utils.normalizeNL(obj.src);
+    }
 
-      if ('name' in obj) {
-        if (detectPattern(obj.name)) {
-          files = namespaceFiles(obj.src, obj);
-        }
+    if ('name' in obj && 'src' in obj) {
+      // If `:pattern` is used in obj.name, that means
+      // we want to add the data from each file in the `src`
+      // array to the corresponding pattern, e.g. `:basename`
+      // means that each file will be added to an object
+      // named after the basename of the file.
+      if (detectPattern(obj.name)) {
+        files = namespaceFiles(obj.src, detectPattern(obj.name));
       }
     }
 
@@ -144,10 +150,21 @@ plasma.load = function(config, options) {
 
     if ('expand' in obj && 'src' in obj) {
       var srcLen = obj.src.length;
-      var meta = {};
+      var meta = {}, hash = {}, hashCache = {};
       for (var j = 0; j < srcLen; j++) {
         var src = obj.src[j];
-        _.extend(meta, file.readDataSync(src));
+        if ('hash' in obj && 'name' in obj) {
+          _.extend(hashCache, file.readDataSync(src));
+        } else {
+          _.extend(meta, file.readDataSync(src));
+        }
+      }
+
+      if ('hash' in obj && 'name' in obj) {
+        hash[obj.name] = hashCache;
+        _.extend(meta, expandHash(hash) || {});
+        delete obj.hash;
+        delete obj.name;
       }
 
       if ('name' in obj) {
