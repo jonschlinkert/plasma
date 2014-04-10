@@ -31,15 +31,14 @@ describe(':when prop strings: are used in the `name` field', function () {
       expect(actual).to.deep.equal(expected);
       done();
     });
-  });
 
+    it('should use the basename of each data file as the namespace for its config object', function (done) {
+      var fixture = [{name: ':basename', src: ['test/fixtures/i18n/*.json'] }];
+      var expected = file.readJSONSync('test/expected/i18n.json');
+      var actual = plasma.process(fixture);
 
-  it('should use the basename of each data file as the namespace for its config object', function (done) {
-    var fixture = [{name: ':basename', src: ['test/fixtures/i18n/*.json'] }];
-    var expected = file.readJSONSync('test/expected/i18n.json');
-    var actual = plasma.process(fixture);
-
-    expect(actual).to.deep.equal(expected);
-    done();
+      expect(actual).to.deep.equal(expected);
+      done();
+    });
   });
 });

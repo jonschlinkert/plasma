@@ -75,16 +75,15 @@ plasma.normalizeArray = function (arr) {
  * @api public
  */
 
-plasma.normalize = function(config, options) {
-  options = options || {};
+plasma.normalize = function(config) {
   var data = [];
 
   log.verbose.inform('normalizing');
 
   if (type(config) === 'string') {
-    data = data.concat(plasma.normalizeString(config, options));
+    data = data.concat(plasma.normalizeString(config));
   } else if (type(config) === 'array') {
-    data = data.concat(plasma.normalizeArray(config, options));
+    data = data.concat(plasma.normalizeArray(config));
   } else if (type(config) === 'object') {
     data = data.concat(config);
   }
@@ -104,23 +103,25 @@ plasma.normalize = function(config, options) {
  * @api public
  */
 
-plasma.expand = function(arr, options) {
+plasma.expand = function(config, options) {
   options = options || {};
-  var data = [], len = arr.length, files = [];
+  config = plasma.normalize(config, options);
+
+  var data = [], len = config.length, files = [];
 
   for (var i = 0; i < len; i++) {
-    var obj = arr[i];
+    var obj = config[i];
     if (!(obj.expand === false) && 'src' in obj) {
-      obj.src = glob.find(_.extend(options, obj));
+      obj.src = glob.find(_.extend(obj, {nonull: true}, options));
       obj.src = utils.normalizeNL(obj.src);
     }
 
     if ('name' in obj && 'src' in obj) {
       // If `:pattern` is used in obj.name, that means
       // we want to add the data from each file in the `src`
-      // array to the corresponding pattern, e.g. `:basename`
-      // means that each file will be added to an object
-      // named after the basename of the file.
+      // array to a pattern that matches a corresponding node.path method.
+      // e.g. if `:basename` is used, each file will be added to an
+      // object named after the basename of the file.
       if (detectPattern(obj.name)) {
         files = namespaceFiles(obj.src, detectPattern(obj.name));
       }
@@ -141,7 +142,7 @@ plasma.expand = function(arr, options) {
 
 plasma.load = function(config, options) {
   options = options || {};
-  config = plasma.normalize(config, options);
+  var orig = _.cloneDeep(config);
   config = plasma.expand(config, options);
 
   var data = {}, name = {}, len = config.length;
@@ -154,9 +155,17 @@ plasma.load = function(config, options) {
       for (var j = 0; j < srcLen; j++) {
         var src = obj.src[j];
         if ('hash' in obj && 'name' in obj) {
-          _.extend(hashCache, file.readDataSync(src));
+          if (file.exists(src)) {
+            _.extend(hashCache, file.readDataSync(src));
+          } else {
+            _.extend(hashCache, src);
+          }
         } else {
-          _.extend(meta, file.readDataSync(src));
+          if (file.exists(src)) {
+            _.extend(meta, file.readDataSync(src));
+          } else {
+            _.extend(meta, src);
+          }
         }
       }
 
@@ -200,7 +209,6 @@ plasma.load = function(config, options) {
       _.extend(data, obj);
     }
   }
-
   // Clean up temporary props from normalized objects
   if ('__normalized__' in data) {
     delete data.__normalized__;
@@ -208,7 +216,10 @@ plasma.load = function(config, options) {
     delete data.src;
   }
 
-  return data;
+  return {
+    orig: orig,
+    data: data
+  }
 };
 
 
