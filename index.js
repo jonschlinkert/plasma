@@ -72,6 +72,13 @@ var isNormalized = function(arr) {
   });
 };
 
+var typeInArray = function(value) {
+  return value.map(function(item) {
+    return type(item);
+  })[0];
+};
+
+
 /**
  * Convert a string to an object with `expand` and `src` properties
  * Also adds the `__normalized__` heuristic, so that augmented
@@ -83,10 +90,13 @@ var isNormalized = function(arr) {
  * @api public
  */
 
-plasma.normalizeString = function(str) {
-  return {__normalized__: true, src: [str]};
+plasma.normalizeString = function(str, options) {
+  var files = glob.find(str);
+  if (files.length < 1) {
+    return str;
+  }
+  return {__normalized__: true, src: files};
 };
-
 
 /**
  * Normalize an array of strings to an array of objects,
@@ -98,18 +108,37 @@ plasma.normalizeString = function(str) {
  * @api public
  */
 
-plasma.normalizeArray = function (arr) {
-  var data = [], len = arr.length;
+plasma.normalizeArray = function (arr, options) {
+  var data = [], strings = [], objects = [], files = [];
+  options = options || {};
 
-  for (var i = 0; i < len; i++) {
-    data = data.concat(plasma.normalizeString(arr[i]));
-    if (type(arr[i]) === 'string') {
-      data = data.concat({src: glob.find(arr)});
-      data = data.concat(plasma.normalizeString(arr[i]));
-    } else if (type(arr[i]) === 'object') {
-      data = data.concat(plasma.normalizeObject(arr[i]));
+  arr.forEach(function (value) {
+    if (type(value) === 'object') {
+      objects.push(value);
+    } else if (type(value) === 'string') {
+      var patterns = glob.find(value, options);
+      if (patterns.length < 1) {
+        strings = strings.concat(value);
+      } else {
+        files = files.concat(patterns);
+      }
     }
+  });
+
+  if (strings.length > 0) {
+    data = data.concat(strings);
   }
+
+  if (files.length > 0) {
+    data = data.concat({__normalized__: true, src: files});
+  }
+
+  if (objects.length > 0) {
+    objects.forEach(function(obj) {
+      data = data.concat(plasma.normalizeObject(obj, options));
+    });
+  }
+
   return data;
 };
 
@@ -138,7 +167,7 @@ plasma.normalizeObject = function (config, options) {
 
     if ('name' in config) {
 
-      if ('string' === typeof config.name) {
+      if (typeof config.name === 'string') {
         // If config.name looks like a prop string, try to
         // match it to a method on the path module, then use the
         // method to generate the name of the object for each file.
@@ -149,18 +178,19 @@ plasma.normalizeObject = function (config, options) {
           data = data.concat(namespaceFiles(config.name, config.src, options));
         } else {
           // {'name': 'fez', src: ['*.json']}
-          data = data.concat({__normalized__: true, name: config.name, src: config.src});
+          var files = glob.find(config.src);
+          data = data.concat({__normalized__: true, name: config.name, src: files});
         }
-      }
-
-      // {'name': function(src) { return src; }, src: ['*.json']}
-      if ('function' === typeof config.name) {
+      } else if (typeof config.name === 'function') {
+        // {'name': function(src) { return src; }, src: ['*.json']}
         data = data.concat(config.name(config.src));
       }
-    }
-  }
 
-  if (!config.src) {
+    } else {
+      config.__normalized__ = true;
+      data = data.concat(config);
+    }
+  } else {
     config.__normalized__ = true;
     data = data.concat(config);
   }

@@ -27,10 +27,10 @@ describe('when plasma.normalizeObject():', function () {
 
   describe('is passed an object:', function () {
     it('bar should return an array of objects, each with `__normalized__` and `src` properties', function (done) {
-      var fixture = { name: 'fez', src: ['a/*.json', 'b/*.json']};
+      var fixture = { name: 'fez', src: ['*.json', '*.json']};
       var actual = plasma.normalizeObject(fixture);
 
-      var expected = [{__normalized__: true, name: 'fez', src: ['a/*.json', 'b/*.json']}];
+      var expected = [{__normalized__: true, name: 'fez', src: ['bower.json', 'package.json']}];
       expect(actual).to.deep.equal(expected);
       done();
     });
@@ -102,7 +102,7 @@ describe('when plasma.normalizeObject():', function () {
   });
 
   describe('is passed an object:', function () {
-    it('baz should return an array of objects, each with `__normalized__` and `src` properties', function (done) {
+    it('and `name` is a function', function (done) {
       var fixture = {
         src: 'test/fixtures/*.{json,yml}',
         name: function(src) {

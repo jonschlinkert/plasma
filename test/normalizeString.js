@@ -13,14 +13,14 @@ const plasma = require('../');
 describe('when plasma.normalizeString() is used on a string', function () {
   it('should convert the string to an object with `__normalized__` and `src` properties', function (done) {
     var fixture = '*.json';
-    var expected = {__normalized__: true, src: ['*.json']};
+    var expected = {__normalized__: true, src: ['bower.json', 'package.json']};
     expect(plasma.normalizeString(fixture)).to.deep.equal(expected);
     done();
   });
 
   it('should convert the string to an object with `__normalized__` and `src` properties', function (done) {
     var fixture = 'a';
-    var expected = {__normalized__: true, src: ['a']};
+    var expected = 'a';
     expect(plasma.normalizeString(fixture)).to.deep.equal(expected);
     done();
   });

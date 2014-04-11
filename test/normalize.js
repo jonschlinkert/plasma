@@ -11,13 +11,13 @@ const plasma = require('../');
 
 describe('when plasma.normalize():', function () {
 
-  String
+  // String
   describe('is passed a string:', function () {
     it('should return an array of objects, each with `__normalized__` and `src` properties', function (done) {
       var fixture = '*.json';
       var actual = plasma.normalize(fixture);
 
-      var expected = [{__normalized__: true, src: ['package.json', 'bower.json']}];
+      var expected = [{__normalized__: true, src: ['bower.json', 'package.json']}];
       expect(actual).to.deep.equal(expected);
       done();
     });
@@ -38,7 +38,7 @@ describe('when plasma.normalize():', function () {
       var fixture = {name: 'foo', src: ['*.json']};
       var actual = plasma.normalize(fixture);
 
-      var expected = [{__normalized__: true, name: 'foo', src: ['package.json', 'bower.json']}];
+      var expected = [{__normalized__: true, name: 'foo', src: ['bower.json', 'package.json']}];
       expect(actual).to.deep.equal(expected);
       done();
     });
@@ -47,7 +47,7 @@ describe('when plasma.normalize():', function () {
   // Array of strings
   describe('is passed an array of strings:', function () {
     it('foo should convert the array of strings to an array of objects, each with `__normalized__` and `src` properties', function (done) {
-      var fixture = ['test/fixtures/*.json', 'test/fixtures/*.yml'];
+      var fixture = ['test/fixtures/*.yml', 'test/fixtures/*.json'];
       var actual = plasma.normalize(fixture);
 
       var expected = [{__normalized__: true, src: ['test/fixtures/a.yml', 'test/fixtures/b.json', 'test/fixtures/c.json']}];
@@ -56,12 +56,27 @@ describe('when plasma.normalize():', function () {
     });
   });
 
-  describe('is passed an array of objects:', function () {
-    it('bar should return an array of objects, each with `__normalized__` and `src` properties', function (done) {
-      var fixture = [{ name: 'fez', src: ['a/*.json', 'b/*.json']}];
+  // Mixed values
+  describe('is passed an array containing mixed values (strings and objects):', function () {
+    it('should return an array of objects, where each original object in the array is returned unmodified, and each string is converted to an object with `src` and `__normalized__` properties', function (done) {
+      var fixture = ['*.json', {name: 'foo', src: ['test/fixtures/*.json']}];
       var actual = plasma.normalize(fixture);
 
-      var expected = [{__normalized__: true, name: 'fez', src: ['a/*.json', 'b/*.json']}];
+      var expected = [
+        {__normalized__: true, src: ['bower.json', 'package.json']},
+        {__normalized__: true, name: 'foo', src: ['test/fixtures/b.json', 'test/fixtures/c.json']},
+      ];
+      expect(actual).to.deep.equal(expected);
+      done();
+    });
+  });
+
+  describe('is passed an array of objects:', function () {
+    it('bar should return an array of objects, each with `__normalized__` and `src` properties', function (done) {
+      var fixture = [{ name: 'fez', src: ['*.json']}];
+      var actual = plasma.normalize(fixture);
+
+      var expected = [{__normalized__: true, name: 'fez', src: ['bower.json', 'package.json']}];
       expect(actual).to.deep.equal(expected);
       done();
     });
@@ -102,27 +117,12 @@ describe('when plasma.normalize():', function () {
     });
 
     it('should return the array of unmodified objects', function (done) {
-      var fixture = [{quux: 'a/*.json'}, {name: 'foo', src: ['a/*.json']}];
+      var fixture = [{quux: 'a/*.json'}, {name: 'foo', src: ['test/fixtures/*.json']}];
       var actual = plasma.normalize(fixture);
 
       var expected = [
         {__normalized__: true, quux: 'a/*.json'},
-        {__normalized__: true, name: 'foo', src: ['a/*.json']}
-      ];
-      expect(actual).to.deep.equal(expected);
-      done();
-    });
-  });
-
-  // Mixed values
-  describe('is passed an array containing mixed values (strings and objects):', function () {
-    it('should return an array of objects, where each original object in the array is returned unmodified, and each string is converted to an object with `src` and `__normalized__` properties', function (done) {
-      var fixture = ['a/*.json', {name: 'foo', src: ['a/*.json']}];
-      var actual = plasma.normalize(fixture);
-
-      var expected = [
-        {__normalized__: true, src: ['a/*.json']},
-        {__normalized__: true, name: 'foo', src: ['a/*.json']}
+        {__normalized__: true, name: 'foo', src: ['test/fixtures/b.json', 'test/fixtures/c.json']}
       ];
       expect(actual).to.deep.equal(expected);
       done();
