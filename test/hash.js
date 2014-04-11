@@ -17,15 +17,9 @@ const plasma = require('../');
 
 describe('when plasma.process() is used on a config object', function () {
   xit('should return an object with the name from the `name` property', function (done) {
-    var fixture = [{
-      hash: true,
-      name: 'foo.bar.baz',
-      src: ['test/fixtures/*.{json,yml}'],
-      one: {
-        two: 'three'
-      }
-    }];
+    var fixture = [{hash: true, name: 'foo.bar.baz', src: ['test/fixtures/*.{json,yml}'], one: {two: 'three'} }];
     var actual = plasma.load(fixture);
+
     var expected = {foo: {bar: {baz: {aaa: 'bbbb', ccc: 'dddd', eee: 'ffff'} } }, one: {two: 'three'}};
     expect(actual).to.deep.equal(expected);
     done();
@@ -35,8 +29,9 @@ describe('when plasma.process() is used on a config object', function () {
 describe('when plasma.process() is used on a config object', function () {
   xit('should return an object with the name from the `name` property', function (done) {
     var fixture = {hash: true, name: 'foo.bar', src: ['test/fixtures/*.{json,yml}'], one: {two: 'three'}};
-    var expected = {foo: {bar: {aaa: 'bbbb', ccc: 'dddd', eee: 'ffff'} }, one: {two: 'three'} };
     var actual = plasma.load(fixture);
+
+    var expected = {foo: {bar: {aaa: 'bbbb', ccc: 'dddd', eee: 'ffff'} }, one: {two: 'three'} };
     expect(actual).to.deep.equal(expected);
     done();
   });

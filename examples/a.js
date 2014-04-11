@@ -1,10 +1,3 @@
-/**
- * plasma <https://github.com/jonschlinkert/plasma>
- *
- * Copyright (c) 2014 Jon Schlinkert, contributors.
- * Licensed under the MIT license.
- */
-
 const expect = require('chai').expect;
 const file = require('fs-utils');
 const plasma = require('../');
@@ -21,27 +14,13 @@ var config = [
   ['test/fixtures/*.json', 'test/fixtures/*.yml', {src: ['test/fixtures/a/*.json'], name: 'f', expand: false}]
 ];
 
-function loadConfig(arr) {
-  var obj = {};
-
-  arr.map(function(c) {
-    _.merge(obj, plasma.load(c));
-  });
-
-  return obj;
-}
-file.writeJSONSync('tmp/loadConfig-a.json', loadConfig(config));
-
-function extendConfig(arr) {
-  var obj = {};
-
-  arr.map(function(c) {
-    _.extend(obj, plasma.load(c));
-  });
-
-  return obj;
-}
-file.writeJSONSync('tmp/extendConfig-a.json', extendConfig(config));
+var config2 = [
+  {src: ['test/fixtures/pkg/*.json']},
+  {src: ['*.json'], cwd: 'test/fixtures/pkg', prefixBase: true},
+  {src: ['*.json'], cwd: 'test/fixtures/a', expand: false},
+  'test/fixtures/*.yml',
+  {src: ['test/fixtures/a/*.json'], name: 'f', expand: false}
+];
 
 function mergeConfig(arr) {
   var obj = {};
@@ -52,4 +31,5 @@ function mergeConfig(arr) {
 
   return obj;
 }
-file.writeJSONSync('tmp/mergeConfig-a.json', mergeConfig(config));
+// file.writeJSONSync('tmp/merged-context.json', mergeConfig(config));
+file.writeJSONSync('tmp/merged-context.json', plasma.load(config2));

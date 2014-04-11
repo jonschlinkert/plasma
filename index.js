@@ -5,6 +5,7 @@
  * Licensed under the MIT license.
  */
 
+const path = require('path');
 const file = require('fs-utils');
 const glob = require('globule');
 const expander = require('expander');
@@ -16,10 +17,60 @@ const utils = require('./lib/utils');
 const plasma = module.exports = {};
 
 var type = utils.type;
+var arrayify = utils.arrayify;
 var detectPattern = utils.detectPattern;
 var namespaceFiles = utils.namespaceFiles;
 var namespaceObject = utils.namespaceObject;
 
+
+var pathObject = function(filepath) {
+  return {
+    extname: path.extname(filepath),
+    basename: path.basename(filepath, path.extname(filepath)),
+    dirname: file.lastDir(filepath)
+  };
+};
+
+
+var namespaceFiles = function(name, src, options) {
+  var detectedName = detectPattern(name);
+  var filesArray = [];
+
+  var patterns = glob.find(src, options);
+  var patternsLen = patterns.length;
+
+  for (var j = 0; j < patternsLen; j++) {
+    var filepath = patterns[j];
+    var objectName = pathObject(filepath)[detectedName];
+
+    filesArray = filesArray.concat({__normalized__: true, name: objectName, src: [filepath]});
+  }
+  return filesArray;
+};
+
+var namespaceObject = function(name, src, options) {
+  options = options || {};
+  name = detectPattern(name);
+  var hash = {}, data = {}, len = src.length;
+
+  for (var i = 0; i < len; i++) {
+    var filepath = src[i];
+    if(options.expand && options.expand === false) {
+      hash[name] = filepath;
+    } else {
+      // hash[name] = file.readDataSync(filepath);
+    }
+    _.extend(data, hash);
+  }
+
+  return data;
+};
+
+var isNormalized = function(arr) {
+  return arr.map(function(obj) {
+    return _.extend({__normalized__: true}, obj);
+  });
+};
 
 /**
  * Convert a string to an object with `expand` and `src` properties
@@ -51,12 +102,69 @@ plasma.normalizeArray = function (arr) {
   var data = [], len = arr.length;
 
   for (var i = 0; i < len; i++) {
+    data = data.concat(plasma.normalizeString(arr[i]));
     if (type(arr[i]) === 'string') {
+      data = data.concat({src: glob.find(arr)});
       data = data.concat(plasma.normalizeString(arr[i]));
     } else if (type(arr[i]) === 'object') {
-      data = data.concat(arr[i]);
+      data = data.concat(plasma.normalizeObject(arr[i]));
     }
   }
+  return data;
+};
+
+
+/**
+ * Normalize an object
+ *
+ * @api public
+ */
+
+plasma.normalizeObject = function (config, options) {
+  var data = [], hash = {}; options = options || {};
+
+  if ('expand' in config) {
+    options.expand = config.expand;
+    delete config.expand;
+  }
+
+  if ('cwd' in config) {
+    options.cwd = config.cwd;
+    delete config.cwd;
+  }
+
+  if ('src' in config) {
+    config.src = arrayify(config.src);
+
+    if ('name' in config) {
+
+      if ('string' === typeof config.name) {
+        // If config.name looks like a prop string, try to
+        // match it to a method on the path module, then use the
+        // method to generate the name of the object for each file.
+        //
+        //   {'name': ':basename', src: ['a/*.json', 'b/*.json']}
+        //
+        if (detectPattern(config.name)) {
+          data = data.concat(namespaceFiles(config.name, config.src, options));
+        } else {
+          // {'name': 'fez', src: ['*.json']}
+          data = data.concat({__normalized__: true, name: config.name, src: config.src});
+        }
+      }
+
+      // {'name': function(src) { return src; }, src: ['*.json']}
+      if ('function' === typeof config.name) {
+        data = data.concat(config.name(config.src));
+      }
+    }
+  }
+
+  if (!config.src) {
+    config.__normalized__ = true;
+    data = data.concat(config);
+  }
+
   return data;
 };
 
@@ -75,17 +183,17 @@ plasma.normalizeArray = function (arr) {
  * @api public
  */
 
-plasma.normalize = function(config) {
+plasma.normalize = function(config, options) {
   var data = [];
 
   log.verbose.inform('normalizing');
 
   if (type(config) === 'string') {
-    data = data.concat(plasma.normalizeString(config));
-  } else if (type(config) === 'array') {
-    data = data.concat(plasma.normalizeArray(config));
-  } else if (type(config) === 'object') {
-    data = data.concat(config);
+    data = data.concat(plasma.normalizeString(config, options));
+  } if (type(config) === 'array') {
+    data = data.concat(plasma.normalizeArray(config, options));
+  } if (type(config) === 'object') {
+    data = data.concat(plasma.normalizeObject(config, options));
   }
 
   return data;
@@ -111,9 +219,10 @@ plasma.expand = function(config, options) {
 
   for (var i = 0; i < len; i++) {
     var obj = config[i];
-    if (!(obj.expand === false) && 'src' in obj) {
-      obj.src = glob.find(_.merge(obj, {nonull: true}, options));
+    if ((obj.expand && obj.expand !== false) && 'src' in obj) {
+      obj.src = glob.find(_.defaults(options, {nonull: true}, obj));
       obj.src = utils.normalizeNL(obj.src);
+      delete obj.nonull;
     }
 
     if ('name' in obj && 'src' in obj) {
@@ -129,6 +238,7 @@ plasma.expand = function(config, options) {
 
     data = data.concat(obj);
   }
+
   return _.merge(data, files);
 };
 
@@ -142,14 +252,16 @@ plasma.expand = function(config, options) {
 
 plasma.load = function(config, options) {
   options = options || {};
-  var orig = _.cloneDeep(config);
-  config = plasma.expand(config, options);
+  config = _.cloneDeep(config);
+  var orig = config;
 
+  config = plasma.expand(config, options);
   var data = {}, name = {}, len = config.length;
+
   for (var i = 0; i < len; i++) {
     var obj = config[i];
 
-    if (!(obj.expand === false) && 'src' in obj) {
+    if ((obj.expand && obj.expand !== false) && 'src' in obj) {
       var srcLen = obj.src.length;
       var meta = {}, hash = {}, hashCache = {};
       for (var j = 0; j < srcLen; j++) {
@@ -196,9 +308,9 @@ plasma.load = function(config, options) {
     }
 
     if ('name' in obj && 'src' in obj) {
-      obj.src = utils.arrayify(obj.src);
+      obj.src = arrayify(obj.src);
 
-      _.merge(data, namespaceObject(obj.src, obj.name));
+      _.merge(data, namespaceObject(obj.name, obj.src));
 
       if (!options.retain) {
         delete data.name;
@@ -219,7 +331,7 @@ plasma.load = function(config, options) {
   return {
     orig: orig,
     data: data
-  }
+  };
 };
 
 
