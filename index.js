@@ -5,9 +5,7 @@
  * Licensed under the MIT license.
  */
 
-const path = require('path');
 const file = require('fs-utils');
-const glob = require('globule');
 const expander = require('expander');
 const replace = require('frep');
 const expandHash = require('expand-hash');
@@ -20,32 +18,6 @@ const plasma = module.exports = {};
 var type = utils.type;
 var arrayify = utils.arrayify;
 var detectPattern = utils.detectPattern;
-var normalized = {__normalized__: true};
-
-
-var pathObject = function(filepath) {
-  return {
-    extname: path.extname(filepath),
-    basename: path.basename(filepath, path.extname(filepath)),
-    dirname: file.lastDir(filepath)
-  };
-};
-
-
-var expandMatches = function(str, options) {
-  var patterns = _.cloneDeep(str);
-  var data = {};
-  arrayify(patterns).map(function(pattern) {
-    var files = file.expand(pattern, options);
-    if (files.length === 0) {
-      _.merge(data, {nomatch: [pattern]});
-    } else {
-      _.merge(data, {src: files});
-    }
-  });
-  return data;
-};
-
 
 var renameProp = function(str, filepath) {
   var replacements = {
@@ -55,10 +27,9 @@ var renameProp = function(str, filepath) {
   return replace.strWithObj(str, replacements);
 };
 
-
-var namespaceFiles = function(config, options) {
+var namespaceFiles = function(configObject, options) {
+  var config = _.cloneDeep(configObject);
   options = options || {};
-  var detectedName = detectPattern(name);
   var data = [];
 
   var name = config.name;
@@ -80,8 +51,9 @@ var namespaceFiles = function(config, options) {
       });
     }
   }
-  var hash = {}, content = {};
+
   if ('dothash' in config) {
+    var hash = {}, content = {};
     delete config.dothash;
     data.forEach(function(obj) {
       obj.src.map(function(filepath) {
@@ -97,43 +69,8 @@ var namespaceFiles = function(config, options) {
     });
     data = data.concat(hash);
   }
-  // return data.map(function(ea) {
-  //   delete ea.dothash;
-  //   delete ea.name;
-  //   delete ea.src;
-  //   return _.defaults(ea, config);
-  // });
-  return data;
-};
-
-var namespaceObject = function(name, src, options) {
-  options = options || {};
-  name = detectPattern(name);
-  var hash = {}, data = {}, len = src.length;
-
-  for (var i = 0; i < len; i++) {
-    var filepath = src[i];
-    if(options.expand && options.expand === false) {
-      hash[name] = filepath;
-    } else {
-      hash[name] = file.readDataSync(filepath);
-    }
-    _.merge(data, hash);
-  }
 
   return data;
-};
-
-var isNormalized = function(arr) {
-  return arr.map(function(obj) {
-    return _.merge(normalized, obj);
-  });
-};
-
-var typeInArray = function(value) {
-  return value.map(function(item) {
-    return type(item);
-  })[0];
 };
 
 
@@ -218,7 +155,7 @@ plasma.normalizeObject = function (obj, options) {
   options = options || {};
   options.expand = options.expand || true;
 
-  var data = [], hash = {};
+  var data = [];
 
   // `processConfig` function
   if ('processConfig' in obj && type(obj.processConfig) === 'function') {
@@ -281,7 +218,6 @@ plasma.normalizeObject = function (obj, options) {
         obj = _.extend({}, obj, {__normalized__: true, name: obj.name, src: files});
         data = data.concat(obj);
       } else {
-        var objName = {};
         obj[obj.name] = obj.src;
         obj = _.extend({}, obj, {__normalized__: true, name: obj.name, nomatch: obj.src});
         delete obj.name;
@@ -344,7 +280,7 @@ plasma.load = function(config, options) {
   var orig = config, nomatch = [];
 
   config = plasma.normalize(config, options);
-  var data = {}, name = {}, len = config.length;
+  var data = {}, name = {};
   config.forEach(function (obj) {
 
     if ('dothash' in obj) {
@@ -355,7 +291,7 @@ plasma.load = function(config, options) {
       nomatch = nomatch.concat(obj.nomatch);
     }
 
-    if (!'__normalized__' in obj) {
+    if (!obj.__normalized__) {
       throw new Error('Config should be normalized. Something has gone awry.');
     } else {
 
@@ -406,7 +342,6 @@ plasma.load = function(config, options) {
 
 
         if ('name' in obj && 'src' in obj) {
-        console.log(obj)
           name[obj.name] = meta;
           _.merge(data, name);
           if (!options.retainKeys) {

@@ -26,7 +26,6 @@
     "expand-hash": "~0.1.1",
     "expander": "~0.3.3",
     "fs-utils": "~0.4.0",
-    "globule": "~0.2.0",
     "lodash": "~2.4.1",
     "verbalize": "~0.1.2"
   },
