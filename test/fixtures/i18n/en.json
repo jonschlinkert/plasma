@@ -1,6 +1,5 @@
 {
-  "name": "baaaaar",
-  "es": "<%= es.foo %>",
+  "es": "<%= es %>",
   "de": "<%= de %>",
   "fi": "<%= fi %>",
   "he": "<%= he %>",

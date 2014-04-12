@@ -9,6 +9,7 @@ const path = require('path');
 const file = require('fs-utils');
 const glob = require('globule');
 const expander = require('expander');
+const replace = require('frep');
 const expandHash = require('expand-hash');
 const log = require('verbalize');
 const _ = require('lodash');
@@ -37,42 +38,71 @@ var expandMatches = function(str, options) {
   arrayify(patterns).map(function(pattern) {
     var files = file.expand(pattern, options);
     if (files.length === 0) {
-      _.extend(data, {nomatch: [pattern]});
+      _.merge(data, {nomatch: [pattern]});
     } else {
-      _.extend(data, {src: files});
+      _.merge(data, {src: files});
     }
   });
   return data;
 };
 
 
-var namespaceFiles = function(name, src, options) {
+var renameProp = function(str, filepath) {
+  var replacements = {
+    ':basename': file.name(filepath),
+    ':dirname': file.lastDir(filepath)
+  };
+  return replace.strWithObj(str, replacements);
+};
+
+
+var namespaceFiles = function(config, options) {
   options = options || {};
   var detectedName = detectPattern(name);
   var data = [];
+
+  var name = config.name;
+  var src = config.src;
 
   var files = file.expand(src, options);
   var len = files.length;
 
   if (len === 0) {
-    data = data.concat({
-      __normalized__: true,
+    data = data.concat(_.extend(config, {
       name: name,
       nomatch: src
-    });
+    }));
   } else {
     for (var j = 0; j < len; j++) {
-      var filepath = files[j];
-      var objectName = pathObject(filepath)[detectedName];
-
       data = data.concat({
-        __normalized__: true,
-        name: objectName,
-        src: [filepath]
+        name: name,
+        src: [files[j]]
       });
     }
   }
-
+  var hash = {}, content = {};
+  if ('dothash' in config) {
+    delete config.dothash;
+    data.forEach(function(obj) {
+      obj.src.map(function(filepath) {
+        content.name = renameProp(obj.name, filepath);
+        delete obj.name;
+        content.src = file.readDataSync(filepath);
+        delete obj.src;
+      });
+      _.defaults(hash, config);
+      delete hash.name;
+      hash[content.name] = content.src;
+      hash = expandHash(hash);
+    });
+    data = data.concat(hash);
+  }
+  // return data.map(function(ea) {
+  //   delete ea.dothash;
+  //   delete ea.name;
+  //   delete ea.src;
+  //   return _.defaults(ea, config);
+  // });
   return data;
 };
 
@@ -88,7 +118,7 @@ var namespaceObject = function(name, src, options) {
     } else {
       hash[name] = file.readDataSync(filepath);
     }
-    _.extend(data, hash);
+    _.merge(data, hash);
   }
 
   return data;
@@ -96,7 +126,7 @@ var namespaceObject = function(name, src, options) {
 
 var isNormalized = function(arr) {
   return arr.map(function(obj) {
-    return _.extend(normalized, obj);
+    return _.merge(normalized, obj);
   });
 };
 
@@ -206,6 +236,7 @@ plasma.normalizeObject = function (obj, options) {
     delete obj.cwd;
   }
 
+
   if ('name' in obj && !obj.src) {
     // If no `src` is found, return the object as-is
     obj.__normalized__ = true;
@@ -220,7 +251,7 @@ plasma.normalizeObject = function (obj, options) {
     } else {
       srcObj = _.defaults({src: srcfiles}, obj);
     }
-    data = data.concat(_.extend({__normalized__: true}, srcObj));
+    data = data.concat(_.merge({__normalized__: true}, srcObj));
   } else if ('name' in obj && 'src' in obj) {
     obj.src = arrayify(obj.src);
 
@@ -233,7 +264,7 @@ plasma.normalizeObject = function (obj, options) {
     */
 
     if (detectPattern(obj.name)) {
-      data = data.concat(namespaceFiles(obj.name, obj.src, options));
+      data = data.concat(namespaceFiles(obj, options));
     } else {
       var files = file.expand(obj.src, options);
 
@@ -242,7 +273,10 @@ plasma.normalizeObject = function (obj, options) {
         delete obj.src;
       }
 
-      // {'name': 'fez', src: ['*.json']}
+      /**
+       *  => {'name': 'fez', src: ['*.json']}
+       */
+
       if (files.length > 0) {
         obj = _.extend({}, obj, {__normalized__: true, name: obj.name, src: files});
         data = data.concat(obj);
@@ -254,12 +288,7 @@ plasma.normalizeObject = function (obj, options) {
         delete obj.src;
         data = data.concat(obj);
       }
-
     }
-  } else if (!obj.name && !obj.src) {
-    // If no `src` is found, return the object as-is
-    obj.__normalized__ = true;
-    data = data.concat(obj);
   } else {
     // If no `src` is found, return the object as-is
     obj.__normalized__ = true;
@@ -317,9 +346,15 @@ plasma.load = function(config, options) {
   config = plasma.normalize(config, options);
   var data = {}, name = {}, len = config.length;
   config.forEach(function (obj) {
-    if (obj.nomatch) {
+
+    if ('dothash' in obj) {
+      options.dothash = obj.dothash;
+    }
+
+    if ('nomatch' in obj) {
       nomatch = nomatch.concat(obj.nomatch);
     }
+
     if (!'__normalized__' in obj) {
       throw new Error('Config should be normalized. Something has gone awry.');
     } else {
@@ -332,13 +367,28 @@ plasma.load = function(config, options) {
         var meta = {}, hash = {}, hashCache = {};
 
         _.forEach(obj.src, function (filepath) {
-          if ('dothash' in obj && 'name' in obj) {
+
+          if ('dothash' in options && 'name' in obj) {
             if (file.exists(filepath)) {
               _.merge(hashCache, file.readDataSync(filepath));
             } else {
               nomatch = nomatch.concat(filepath);
             }
           } else {
+            // var hash = {}, content = {};
+            // if (detectPattern(obj.name)) {
+            //   obj.src.map(function(filepath) {
+            //     content.name = renameProp(obj.name, filepath);
+            //     content.src = file.readDataSync(filepath);
+            //   });
+            //   hash[content.name] = content.src;
+            //   delete obj.dothash;
+            //   delete obj.name;
+            //   delete obj.src;
+            //   _.merge(data, hash);
+            // console.log(data)
+            // }
+
             if (file.exists(filepath)) {
               _.merge(meta, file.readDataSync(filepath));
             } else {
@@ -354,7 +404,9 @@ plasma.load = function(config, options) {
           delete obj.name;
         }
 
+
         if ('name' in obj && 'src' in obj) {
+        console.log(obj)
           name[obj.name] = meta;
           _.merge(data, name);
           if (!options.retainKeys) {
@@ -370,19 +422,8 @@ plasma.load = function(config, options) {
         }
 
       }
-      if ('name' in obj && 'src' in obj) {
-        obj.src = arrayify(obj.src);
 
-        _.merge(data, namespaceObject(obj.name, obj.src));
-        if (!options.retainKeys) {
-          delete data.name;
-          delete data.src;
-        }
-
-      } else {
-        _.merge(data, obj);
-      }
-
+      _.merge(data, obj);
     }
   });
 

@@ -46,43 +46,6 @@ describe('normalizeObject():', function () {
         expect(actual).to.deep.equal(expected);
         done();
       });
-
-      it('should return an array of objects, each with `__normalized__` and `src` properties', function (done) {
-        var fixture = {expand: false, name: ':basename', src: ['test/fixtures/*.json', 'test/fixtures/*.yml']};
-        var actual = plasma.normalizeObject(fixture);
-
-        var expected = [
-          {__normalized__: true, name: 'b', src: ['test/fixtures/b.json']},
-          {__normalized__: true, name: 'c', src: ['test/fixtures/c.json']},
-          {__normalized__: true, name: 'a', src: ['test/fixtures/a.yml']},
-        ];
-        expect(actual).to.deep.equal(expected);
-        done();
-      });
-
-      it('should return an array of objects, each with `__normalized__` and `src` properties', function (done) {
-        var fixture = { name: ':basename', src: ['test/fixtures/*.json', 'test/fixtures/*.yml']};
-        var actual = plasma.normalizeObject(fixture);
-
-        var expected = [
-          {__normalized__: true, name: 'b', src: ['test/fixtures/b.json']},
-          {__normalized__: true, name: 'c', src: ['test/fixtures/c.json']},
-          {__normalized__: true, name: 'a', src: ['test/fixtures/a.yml']},
-        ];
-        expect(actual).to.deep.equal(expected);
-        done();
-      });
-
-      it('should return an array of objects, each with `__normalized__` and `src` properties', function (done) {
-        var fixture = { name: ':basename', src: 'test/fixtures/*.yml'};
-        var actual = plasma.normalizeObject(fixture);
-
-        var expected = [
-          {__normalized__: true, name: 'a', src: ['test/fixtures/a.yml']}
-        ];
-        expect(actual).to.deep.equal(expected);
-        done();
-      });
     });
   });
 
