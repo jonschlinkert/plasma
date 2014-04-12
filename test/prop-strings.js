@@ -18,14 +18,15 @@ describe(':when prop strings: are used in the `name` field', function () {
   describe('if :basename is used', function () {
     it('should use the basename of each data file as the namespace for its config object', function (done) {
       var fixture = {name: ':basename', src: ['test/fixtures/*.{json,yml}']};
+      var actual = plasma.load(fixture).data;
       var expected = {a: {aaa: 'bbbb'}, b: {ccc: 'dddd'}, c: {eee: 'ffff'} };
-      expect(plasma.load(fixture)).to.deep.equal(expected);
+      expect(actual).to.deep.equal(expected);
       done();
     });
 
     it('should use the basename of each data file as the namespace for its config object', function (done) {
-      var fixture = [{name: ':basename', src: ['test/fixtures/bower-pkg/*.json']}];
-      var expected = file.readJSONSync('test/expected/bower-pkg.json');
+      var fixture = [{name: ':basename', src: ['test/fixtures/b.json']}];
+      var expected = {b: {ccc: 'dddd'}};
       var actual = plasma.process(fixture);
 
       expect(actual).to.deep.equal(expected);

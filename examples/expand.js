@@ -12,4 +12,4 @@ var config = [
   }
 ];
 
-console.log(plasma.load(config));
+console.log(plasma.expand(config));

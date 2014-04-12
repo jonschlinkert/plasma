@@ -19,8 +19,7 @@ const plasma = module.exports = {};
 var type = utils.type;
 var arrayify = utils.arrayify;
 var detectPattern = utils.detectPattern;
-var namespaceFiles = utils.namespaceFiles;
-var namespaceObject = utils.namespaceObject;
+var normalized = {__normalized__: true};
 
 
 var pathObject = function(filepath) {
@@ -32,20 +31,49 @@ var pathObject = function(filepath) {
 };
 
 
+var expandMatches = function(str, options) {
+  var patterns = _.cloneDeep(str);
+  var data = {};
+  arrayify(patterns).map(function(pattern) {
+    var files = file.expand(pattern, options);
+    if (files.length === 0) {
+      _.extend(data, {nomatch: [pattern]});
+    } else {
+      _.extend(data, {src: files});
+    }
+  });
+  return data;
+};
+
+
 var namespaceFiles = function(name, src, options) {
+  options = options || {};
   var detectedName = detectPattern(name);
-  var filesArray = [];
+  var data = [];
 
-  var patterns = glob.find(src, options);
-  var patternsLen = patterns.length;
+  var files = file.expand(src, options);
+  var len = files.length;
 
-  for (var j = 0; j < patternsLen; j++) {
-    var filepath = patterns[j];
-    var objectName = pathObject(filepath)[detectedName];
+  if (len === 0) {
+    data = data.concat({
+      __normalized__: true,
+      name: name,
+      nomatch: src
+    });
+  } else {
+    for (var j = 0; j < len; j++) {
+      var filepath = files[j];
+      var objectName = pathObject(filepath)[detectedName];
 
-    filesArray = filesArray.concat({__normalized__: true, name: objectName, src: [filepath]});
+      data = data.concat({
+        __normalized__: true,
+        name: objectName,
+        src: [filepath]
+      });
+    }
   }
-  return filesArray;
+
+  return data;
 };
 
 var namespaceObject = function(name, src, options) {
@@ -58,7 +86,7 @@ var namespaceObject = function(name, src, options) {
     if(options.expand && options.expand === false) {
       hash[name] = filepath;
     } else {
-      // hash[name] = file.readDataSync(filepath);
+      hash[name] = file.readDataSync(filepath);
     }
     _.extend(data, hash);
   }
@@ -68,7 +96,7 @@ var namespaceObject = function(name, src, options) {
 
 var isNormalized = function(arr) {
   return arr.map(function(obj) {
-    return _.extend({__normalized__: true}, obj);
+    return _.extend(normalized, obj);
   });
 };
 
@@ -90,12 +118,8 @@ var typeInArray = function(value) {
  * @api public
  */
 
-plasma.normalizeString = function(str, options) {
-  var files = glob.find(str);
-  if (files.length < 1) {
-    return str;
-  }
-  return {__normalized__: true, src: files};
+plasma.normalizeString = function(patterns, options) {
+  return plasma.normalize({src: [patterns]}, options);
 };
 
 /**
@@ -108,25 +132,35 @@ plasma.normalizeString = function(str, options) {
  * @api public
  */
 
-plasma.normalizeArray = function (arr, options) {
-  var data = [], strings = [], objects = [], files = [];
+plasma.normalizeArray = function (config, options) {
+  var arr = _.cloneDeep(config);
+  var data = [], strings = [], objects = [], arrays = [];
   options = options || {};
 
+  var files = [];
   arr.forEach(function (value) {
     if (type(value) === 'object') {
-      objects.push(value);
+      objects = objects.concat(value);
     } else if (type(value) === 'string') {
-      var patterns = glob.find(value, options);
+      var patterns = file.expand(value, options);
       if (patterns.length < 1) {
         strings = strings.concat(value);
       } else {
         files = files.concat(patterns);
       }
+    } else {
+      arrays.push(value);
     }
   });
 
+  if (arrays.length > 0) {
+    arrays.forEach(function(arr) {
+      data = data.concat(plasma.normalize(arr, options));
+    });
+  }
+
   if (strings.length > 0) {
-    data = data.concat(strings);
+    data = data.concat({__normalized__: true, nomatch: strings});
   }
 
   if (files.length > 0) {
@@ -135,7 +169,7 @@ plasma.normalizeArray = function (arr, options) {
 
   if (objects.length > 0) {
     objects.forEach(function(obj) {
-      data = data.concat(plasma.normalizeObject(obj, options));
+      data = data.concat(plasma.normalize(obj, options));
     });
   }
 
@@ -149,52 +183,85 @@ plasma.normalizeArray = function (arr, options) {
  * @api public
  */
 
-plasma.normalizeObject = function (config, options) {
+
+plasma.normalizeObject = function (obj, options) {
   var data = [], hash = {}; options = options || {};
 
-  if ('expand' in config) {
-    options.expand = config.expand;
-    delete config.expand;
+  if ('processConfig' in obj && type(obj.processConfig) === 'function') {
+    // {'processConfig': function(obj) {return {name: name, src: src}; }, src: ['*.json']}
+    // obj = _.extend({__normalized__: true}, obj.processConfig(obj));
+    obj = plasma.normalize(obj.processConfig(obj));
+  }
+  options.expand = options.expand || true;
+
+  if ('expand' in obj) {
+    options.expand = obj.expand;
+    delete obj.expand;
   }
 
-  if ('cwd' in config) {
-    options.cwd = config.cwd;
-    delete config.cwd;
+  if ('cwd' in obj && 'srcBase' in obj) {
+    options.cwd = obj.cwd || obj.srcBase;
+    delete obj.srcBase;
+    delete obj.cwd;
   }
 
-  if ('src' in config) {
-    config.src = arrayify(config.src);
+  if ('name' in obj && !obj.src) {
+    // If no `src` is found, return the object as-is
+    obj.__normalized__ = true;
+    data = data.concat(obj);
+  } else if ('src' in obj && !obj.name) {
+    var srcfiles = file.expand(obj.src, options);
+    var srcObj = {};
+    if (srcfiles.length === 0) {
+      var origSrc = obj.src;
+      delete obj.src;
+      srcObj = _.defaults({nomatch: origSrc}, obj);
+    } else {
+      srcObj = _.defaults({src: srcfiles}, obj);
+    }
+    data = data.concat(_.extend({__normalized__: true}, srcObj));
+  } else if ('name' in obj && 'src' in obj) {
+    obj.src = arrayify(obj.src);
 
-    if ('name' in config) {
+    // If obj.name looks like a prop string, try to
+    // match it to a method on the path module, then use the
+    // method to generate the name of the object for each file.
+    //
+    //   {'name': ':basename', src: ['a/*.json', 'b/*.json']}
+    //
+    if (detectPattern(obj.name)) {
+      data = data.concat(namespaceFiles(obj.name, obj.src, options));
+    } else {
+      var files = file.expand(obj.src, options);
 
-      if (typeof config.name === 'string') {
-        // If config.name looks like a prop string, try to
-        // match it to a method on the path module, then use the
-        // method to generate the name of the object for each file.
-        //
-        //   {'name': ':basename', src: ['a/*.json', 'b/*.json']}
-        //
-        if (detectPattern(config.name)) {
-          data = data.concat(namespaceFiles(config.name, config.src, options));
-        } else {
-          // {'name': 'fez', src: ['*.json']}
-          var files = glob.find(config.src);
-          data = data.concat({__normalized__: true, name: config.name, src: files});
-        }
-      } else if (typeof config.name === 'function') {
-        // {'name': function(src) { return src; }, src: ['*.json']}
-        data = data.concat(config.name(config.src));
+      if (options.expand === false) {
+        obj[obj.name] = obj.src;
+        delete obj.src;
       }
 
-    } else {
-      config.__normalized__ = true;
-      data = data.concat(config);
-    }
-  } else {
-    config.__normalized__ = true;
-    data = data.concat(config);
-  }
+      // {'name': 'fez', src: ['*.json']}
+      if (files.length > 0) {
+        obj = _.extend({}, obj, {__normalized__: true, name: obj.name, src: files});
+        data = data.concat(obj);
+      } else {
+        var objName = {};
+        obj[obj.name] = obj.src;
+        obj = _.extend({}, obj, {__normalized__: true, name: obj.name, nomatch: obj.src});
+        delete obj.name;
+        delete obj.src;
+        data = data.concat(obj);
+      }
 
+    }
+  } else if (!obj.name && !obj.src) {
+    // If no `src` is found, return the object as-is
+    obj.__normalized__ = true;
+    data = data.concat(obj);
+  } else {
+    // If no `src` is found, return the object as-is
+    obj.__normalized__ = true;
+    data = data.concat(obj);
+  }
   return data;
 };
 
@@ -213,7 +280,9 @@ plasma.normalizeObject = function (config, options) {
  * @api public
  */
 
-plasma.normalize = function(config, options) {
+plasma.normalize = function(value, options) {
+  options = options || {};
+  var config = _.cloneDeep(value);
   var data = [];
 
   log.verbose.inform('normalizing');
@@ -231,49 +300,6 @@ plasma.normalize = function(config, options) {
 
 
 /**
- * Expand src properties in objects that have
- * 'expand:true' defined
- *
- * @param   {Array}  arr      Array of objects
- * @param   {Object} options  Options to pass to Globule
- * @return  {Array}  array of object with expanded src files
- *
- * @api public
- */
-
-plasma.expand = function(config, options) {
-  options = options || {};
-  config = plasma.normalize(config, options);
-
-  var data = [], len = config.length, files = [];
-
-  for (var i = 0; i < len; i++) {
-    var obj = config[i];
-    if ((obj.expand && obj.expand !== false) && 'src' in obj) {
-      obj.src = glob.find(_.defaults(options, {nonull: true}, obj));
-      obj.src = utils.normalizeNL(obj.src);
-      delete obj.nonull;
-    }
-
-    if ('name' in obj && 'src' in obj) {
-      // If `:pattern` is used in obj.name, that means
-      // we want to add the data from each file in the `src`
-      // array to a pattern that matches a corresponding node.path method.
-      // e.g. if `:basename` is used, each file will be added to an
-      // object named after the basename of the file.
-      if (detectPattern(obj.name)) {
-        files = namespaceFiles(obj.src, detectPattern(obj.name));
-      }
-    }
-
-    data = data.concat(obj);
-  }
-
-  return _.merge(data, files);
-};
-
-
-/**
  * [load description]
  * @param   {[type]}  arr      [description]
  * @param   {[type]}  options  [description]
@@ -283,84 +309,98 @@ plasma.expand = function(config, options) {
 plasma.load = function(config, options) {
   options = options || {};
   config = _.cloneDeep(config);
-  var orig = config;
+  var orig = config, nomatch = [];
 
-  config = plasma.expand(config, options);
+  config = plasma.normalize(config, options);
   var data = {}, name = {}, len = config.length;
+  config.forEach(function (obj) {
+    if (obj.nomatch) {
+      nomatch = nomatch.concat(obj.nomatch);
+    }
+    if (!'__normalized__' in obj) {
+      throw new Error('Config should be normalized. Something has gone awry.');
+    } else {
 
-  for (var i = 0; i < len; i++) {
-    var obj = config[i];
+      if (!obj.name && !obj.src) {
+        _.merge(data, obj);
+      } else if ((obj.expand && obj.expand !== false) && 'src' in obj) {
+        _.merge(data, obj);
+      } else {
+        var meta = {}, hash = {}, hashCache = {};
 
-    if ((obj.expand && obj.expand !== false) && 'src' in obj) {
-      var srcLen = obj.src.length;
-      var meta = {}, hash = {}, hashCache = {};
-      for (var j = 0; j < srcLen; j++) {
-        var src = obj.src[j];
-        if ('hash' in obj && 'name' in obj) {
-          if (file.exists(src)) {
-            _.merge(hashCache, file.readDataSync(src));
+        _.forEach(obj.src, function (filepath) {
+          if ('dothash' in obj && 'name' in obj) {
+            if (file.exists(filepath)) {
+              _.merge(hashCache, file.readDataSync(filepath));
+            } else {
+              nomatch = nomatch.concat(filepath);
+            }
           } else {
-            _.merge(hashCache, src);
+            if (file.exists(filepath)) {
+              _.merge(meta, file.readDataSync(filepath));
+            } else {
+              nomatch = nomatch.concat(filepath);
+            }
           }
-        } else {
-          if (file.exists(src)) {
-            _.merge(meta, file.readDataSync(src));
-          } else {
-            _.merge(meta, src);
-          }
-        }
-      }
+        });
 
-      if ('hash' in obj && 'name' in obj) {
-        hash[obj.name] = hashCache;
-        _.merge(meta, expandHash(hash) || {});
-        delete obj.hash;
-        delete obj.name;
-      }
-
-      if ('name' in obj) {
-        name[obj.name] = meta;
-        _.merge(data, name);
-        if (!options.retain) {
+        if ('dothash' in obj && 'name' in obj) {
+          hash[obj.name] = hashCache;
+          _.merge(meta, expandHash(hash) || {});
+          delete obj.dothash;
           delete obj.name;
         }
+
+        if ('name' in obj && 'src' in obj) {
+          name[obj.name] = meta;
+          _.merge(data, name);
+          if (!options.retainKeys) {
+            delete obj.name;
+          }
+        } else {
+          _.merge(data, meta || {});
+        }
+
+        if (!options.retainKeys) {
+          delete obj.expand;
+          delete obj.src;
+        }
+
+      }
+      if ('name' in obj && 'src' in obj) {
+        obj.src = arrayify(obj.src);
+
+        _.merge(data, namespaceObject(obj.name, obj.src));
+        if (!options.retainKeys) {
+          delete data.name;
+          delete data.src;
+        }
+
       } else {
-        _.merge(data, meta);
+        _.merge(data, obj);
       }
 
-      if (!options.retain) {
-        delete obj.expand;
-        delete obj.src;
-      }
-
-    } else {
-      _.merge(data, obj);
     }
+  });
 
-    if ('name' in obj && 'src' in obj) {
-      obj.src = arrayify(obj.src);
-
-      _.merge(data, namespaceObject(obj.name, obj.src));
-
-      if (!options.retain) {
-        delete data.name;
-        delete data.src;
-      }
-
-    } else {
-      _.merge(data, obj);
-    }
-  }
   // Clean up temporary props from normalized objects
   if ('__normalized__' in data) {
+    nomatch = nomatch.concat(data.nomatch);
     delete data.__normalized__;
+    delete data.nomatch;
     delete data.expand;
     delete data.src;
   }
 
+  nomatch = _.unique(nomatch);
+  if (type(nomatch[0]) === 'undefined') {
+    nomatch = [];
+  }
+
   return {
     orig: orig,
-    data: data
+    nomatch: nomatch,
+    data: data || {}
   };
 };
 
@@ -376,7 +416,7 @@ plasma.load = function(config, options) {
 plasma.process = function(obj, options) {
   var result = {};
 
-  obj = plasma.load(obj, options || {});
+  obj = plasma.load(obj, options || {}).data;
   Object.keys(obj).forEach(function(key) {
     result[key] = expander.process(obj, obj[key], options || {});
   });
