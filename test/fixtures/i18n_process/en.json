@@ -1,0 +1,11 @@
+{
+  "es": "<%= i18n_process.es %>",
+  "de": "<%= i18n_process.de %>",
+  "fi": "<%= i18n_process.fi %>",
+  "he": "<%= i18n_process.he %>",
+  "hi": "<%= i18n_process.hi %>",
+  "ja": "<%= i18n_process.ja %>",
+  "ml": "<%= i18n_process.ml %>",
+  "nl": "<%= i18n_process.nl %>",
+  "ta": "<%= i18n_process.ta %>"
+}
