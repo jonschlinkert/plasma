@@ -74,3 +74,20 @@ _(TODO)_
 ## process
 
 _(TODO)_
+
+## options
+
+### processConfig
+
+Example:
+
+```js
+processConfig: function(obj) {
+  return {name: name, src: src}
+}
+```js
+
+
+```js
+obj = _.extend({__normalized__: true}, obj.processConfig(obj));
+```

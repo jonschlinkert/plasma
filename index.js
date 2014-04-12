@@ -185,14 +185,15 @@ plasma.normalizeArray = function (config, options) {
 
 
 plasma.normalizeObject = function (obj, options) {
-  var data = [], hash = {}; options = options || {};
+  options = options || {};
+  options.expand = options.expand || true;
 
+  var data = [], hash = {};
+
+  // `processConfig` function
   if ('processConfig' in obj && type(obj.processConfig) === 'function') {
-    // {'processConfig': function(obj) {return {name: name, src: src}; }, src: ['*.json']}
-    // obj = _.extend({__normalized__: true}, obj.processConfig(obj));
     obj = plasma.normalize(obj.processConfig(obj));
   }
-  options.expand = options.expand || true;
 
   if ('expand' in obj) {
     options.expand = obj.expand;
@@ -223,12 +224,14 @@ plasma.normalizeObject = function (obj, options) {
   } else if ('name' in obj && 'src' in obj) {
     obj.src = arrayify(obj.src);
 
-    // If obj.name looks like a prop string, try to
-    // match it to a method on the path module, then use the
-    // method to generate the name of the object for each file.
-    //
-    //   {'name': ':basename', src: ['a/*.json', 'b/*.json']}
-    //
+   /**
+    * If obj.name looks like a prop string, try to
+    * match it to a method on the path module, then use the
+    * method to generate the name of the object for each file.
+    *
+    *   {'name': ':basename', src: ['a/*.json', 'b/*.json']}
+    */
+
     if (detectPattern(obj.name)) {
       data = data.concat(namespaceFiles(obj.name, obj.src, options));
     } else {
