@@ -35,10 +35,10 @@ describe('when plasma.normalize():', function () {
     });
 
     it('should return an array containing the original object', function (done) {
-      var fixture = {name: 'foo', src: ['*.json']};
+      var fixture = {name: 'foo', src: ['*.json'], z: 'x'};
       var actual = plasma.normalize(fixture);
 
-      var expected = [{__normalized__: true, name: 'foo', src: ['bower.json', 'package.json']}];
+      var expected = [{__normalized__: true, name: 'foo', src: ['bower.json', 'package.json'], z: 'x'}];
       expect(actual).to.deep.equal(expected);
       done();
     });

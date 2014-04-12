@@ -1,14 +1,13 @@
-/**
- * All of these should work.
- */
+You may pass a string, object or array to either `plasma.normalize()` or `plasma.load()` using any of the following conventions (see [the examples](./docs/examples.js)):
 
+```js
 // Strings
-'a'; // results in a `nomatch`
+'a'; // pushed to `nomatch`
 '*.json'; // if files exist, their paths will be expanded and added to a `src` array
 
 // Arrays
-['a', 'b', 'c'];
-['*.json', 'a', 'b', 'c'];
+['a', 'b', 'c']; // pushed to `nomatch`
+['*.json', 'a', 'b', 'c']; // *.json is pushed to `src`, the rest is pushed to `nomatch`
 ['*.json', {src: ['c/*.json']}];
 ['*.json', {src: ['*.json'], cwd: 'c'}];
 ['*.json', {src: ['*.json'], cwd: 'c', prefixBase: true }];
@@ -91,3 +90,4 @@
 {name: ':basename' };
 {name: ':basename', src: 'a/b/c/*.json' };
 {name: ':dirname', src: 'a/b/c/*.json' };
+```

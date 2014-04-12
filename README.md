@@ -1,6 +1,6 @@
 # plasma [![NPM version](https://badge.fury.io/js/plasma.png)](http://badge.fury.io/js/plasma)
 
-> Build a context object to pass to templates. Plasma can load data from a flexible range of configuration and files formats, including JSON/YAML data files defined with minimatch/glob patterns.
+> Build a context object to pass to templates. Plasma can load data from a flexible range of configuration and file formats, including JSON/YAML data files defined with minimatch/glob patterns.
 
 ## Install
 Install with [npm](npmjs.org):
@@ -17,86 +17,151 @@ var plasma = require('plasma');
 plasma.load('*.json');
 ```
 
-## API
-### load
+## Methods
 
-`plasma.load()` is a wrapper around the other `plasma` methods for loading data from a variety of different config and file formats. The following steps are executed in sequence, with the goal of returning an object that has the properties and values you would expect (e.g. the _correct_ duplicates eliminated, etc):
+### plasma.normalize()
 
-1. Config formats are normalized using `plasma.normalize()`.
-1. File paths and globbing patterns are then expanded using `plasma.expand()`
-1. `plasma.load()` reads data from expanded file paths, merges it with raw config data and returns an object.
-
-More detail is provided in the documentation for the following methods.
-
-#### Plasma conventions
-
-Plasma's conventions are based on the following assumptions:
-
-1. When a string is passed directly, _it is most likely a file path_
-1. When an array is passed directly, _it is most likely an array of file paths_
-1. When an object is passed, it may contain file paths, **but Plasma will not try to read them** _unless one of the following conditions is met_:
-
-   * when a `src`
-
-
-### normalizeString
-If a string is passed to any of the "primary" `plasma` methods (e.g. `normalize()`, `load()`, `expand()`, and `process()`), it will be normalized to a Plasma object. So this:
+Returns an array of objects with basic heuristics that can be referenced later by the `load()` function. Glob patterns are also expanded during normalization. For example, either of these:
 
 ```js
-plasma.normalizeString('foo/*.json');
+plasma.normalize('*.json')
+// or
+plasma.normalize(['*.json'])
 ```
-
 will be normalized to:
 
 ```js
-{expand: true, src: ['foo/*.json']}
+[{__normalized__: true, src: ['bower.json', 'package.json']}]
 ```
-Even if it's not a glob pattern. This is okay, since value in the `src` property will be returned if it doesn't resolve to an actual filepath.
-
-
-### normalizeArray
-If an array is passed to any of the "primary" `plasma` methods (e.g. `normalize()`, `load()`, `expand()`, and `process()`), it will be normalized to an array of Plasma objects. So this:
+Of if an object is passed, like:
 
 ```js
-plasma.normalizeArray(['foo/*.json', 'bar/*.json']);
+{name: 'foo', src: ['*.json'], z: 'x'}
 ```
-
-will be normalized to:
+It will be normalized to:
 
 ```js
-[
-  {expand: true, src: ['foo/*.json']},
-  {expand: true, src: ['bar/*.json']}
-];
+[{__normalized__: true, name: 'foo', src: ['bower.json', 'package.json'], z: 'x'}]
 ```
 
-### normalize
-A catchall method for normalizing objects, strings, and arrays to an array of Plasma objects. Wraps `normalizeArray` and `normalizeString`, so arrays and strings are handled the same as those methods.
+This is really a private method, but it's exposed to help with debugging and in case you need to modify how the data is normalized before it's loaded.
 
-Also, if an object is passed:
+
+### plasma.load()
+
+Returns an object with three properties, `{ orig: {}, data: {}, nomatch: [] }`:
+
+* `orig`: a clone of the original data passed to `plasma.load()`
+* `data`: the loaded config object to be passed to templates. e.g. `plasma.load('*.json').data`
+* `nomatch`: an array of properties that could not be normalized to an object or matched to a filepath. this is useful for debugging
+
+## Examples
+You may pass a string, object or array to either `plasma.normalize()` or `plasma.load()` using any of the following conventions (see [the examples](./docs/examples.js)):
 
 ```js
-plasma.normalize({foo: 'foo', bar: 'bar', baz: 'baz'});
+// Strings
+'a'; // pushed to `nomatch`
+'*.json'; // if files exist, their paths will be expanded and added to a `src` array
+
+// Arrays
+['a', 'b', 'c']; // pushed to `nomatch`
+['*.json', 'a', 'b', 'c']; // *.json is pushed to `src`, the rest is pushed to `nomatch`
+['*.json', {src: ['c/*.json']}];
+['*.json', {src: ['*.json'], cwd: 'c'}];
+['*.json', {src: ['*.json'], cwd: 'c', prefixBase: true }];
+['*.json', {src: ['*.json'], cwd: 'c', prefixBase: true }];
+['*.json', {src: ['*.json'], cwd: 'c', expand: false }];
+['*.json', {src: ['c/*.json'], expand: false }];
+['*.json', '*.yml', {src: ['c/*.json']}];
+['*.json', '*.yml', {src: ['c/*.json'], name: 'f'}];
+['*.json', '*.yml', {src: ['c/*.json'], name: 'f', expand: false }];
+
+// Objects
+{a: 'b', b: 'c', d: 'd'};
+
+// Object with src
+{src: 'c/*.json' };
+{src: ['c/*.json'] };
+{src: ['c/*.json', 'd/*.json'] };
+{src: ['c/*.json'], b: 'c' };
+{src: ['c/*.json'], b: 'c', {d: 'e'} };
+{src: ['c/*.json'], b: 'c' };
+{src: ['c/*.json'], b: 'c', expand: false };
+
+// Named objects
+{name: 'a', b: 'c' };
+{name: 'a', b: 'c', {d: 'e'} };
+{name: 'a', b: 'c', {d: 'e', name: 'f'} };
+{name: 'a', b: 'c', {d: 'e', name: 'f', src: ['*.json']} };
+{name: 'a', b: 'c', {d: 'e'}, f: ['g', 'h', 'i'] };
+{name: 'a', src: 'c/*.json' };
+{name: 'a', src: '*.json', cwd: 'c' };
+{name: 'a', src: '*.json', cwd: 'c', prefixBase: true };
+{name: 'a', src: ['c/*.json'] };
+{name: 'a', src: ['c/*.json'], b: 'c' };
+{name: 'a', src: ['c/*.json', 'd/*.json'], b: 'c' };
+{name: 'a', src: ['c/*.json'] };
+{name: 'a', src: ['c/*.json'], expand: false };
+
+// Array of objects
+[{a: 'b', b: 'c', d: 'd'}];
+[{a: 'b', b: 'c'}, {d: 'd'}];
+[{a: 'b', b: 'c'}, {src: '*.json'}];
+[{a: 'b', b: 'c'}, {src: '*.json', name: 'f'}];
+[{a: 'b', b: 'c'}, {src: '*.json', name: 'f', expand: false }];
+[{a: 'b', b: 'c'}, {src: '*.json', name: 'f'}];
+
+['*.json', {src: '*.json'}, '*.yml',, src: ['*.json', '**/*.yml']},, name: 'a', src: ['*.json'], b: 'c'} ];
+
+// Prop strings
+{name: ':basename', a: 'b' };
+{name: ':basename' };
+{name: ':basename', src: 'a/b/c/*.json' };
+{name: ':dirname', src: 'a/b/c/*.json' };
+
+
+// dot hashes
+{name: 'a', c: 'd' };
+{name: 'a', c: { d: 'e'} };
+{name: 'a.b', c: 'd' };
+{name: 'a.b', c: { d: 'e'} };
+{name: 'a.b.c', c: { d: 'e'} };
+
+{name: 'a', {c: ['d', 'e']} };
+{name: 'a.b', {c: ['d', 'e']} };
+{name: 'a.b.c', {c: ['d', 'e']} };
+
+{name: 'a', src: 'a/b/c/*.json' };
+{name: 'a.b', src: 'a/b/c/*.json' };
+{name: 'a.b.c', src: 'a/b/c/*.json' };
+
+{name: 'a', src: ['a/b/c/*.json'] };
+{name: 'a.b', src: ['a/b/c/*.json'] };
+{name: 'a.b.c', src: ['a/b/c/*.json'] };
+
+{name: 'a', {'b': 'c'} };
+{name: 'a', {'b.c': 'd'} };
+{name: 'a', {'b.c.d': 'e'} };
+
+// Prop strings with dot hashes
+{name: ':dirname.:basename', src: ['i18n/*.json'] };
+{name: ':basename' };
+{name: ':basename', src: 'a/b/c/*.json' };
+{name: ':dirname', src: 'a/b/c/*.json' };
 ```
 
-it will be normalized to:
+### Invalid patterns
+
+Neither of these can be normalized to a useful object:
 
 ```js
-[
-  {foo: 'foo', bar: 'bar', baz: 'baz'}
-];
+var foo = 'a';
+var foo = ['a', 'b', 'c'];
 ```
 
-### expand
-
-_(TODO)_
-
-### process
-
-_(TODO)_
+These, and any other patterns that can't be normalized are pushed to a `nomatch` array.
 
 ## Tests
-
 Run `mocha`
 
 ## Author
@@ -112,4 +177,4 @@ Released under the MIT license
 
 ***
 
-_This file was generated by [verb-cli](https://github.com/assemble/verb-cli) on April 10, 2014._
+_This file was generated by [verb-cli](https://github.com/assemble/verb-cli) on April 12, 2014._
