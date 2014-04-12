@@ -6,7 +6,6 @@
  */
 
 const expect = require('chai').expect;
-const file = require('fs-utils');
 const plasma = require('../');
 
 
@@ -15,7 +14,7 @@ const plasma = require('../');
  */
 
 describe('plasma.load():', function () {
-  describe('when prop strings: are used in the `name` field', function () {
+  describe('when prop strings are used in the `name` field', function () {
     describe('if :basename is used', function () {
       it('should use the basename of each data file as the namespace for its config object', function (done) {
         var fixture = {name: ':basename', src: ['test/fixtures/*.{json,yml}'], alpha: 'beta'};
@@ -42,14 +41,14 @@ describe('plasma.process():', function () {
 
     it('should use the basename of each data file as the namespace for its config object', function (done) {
       var fixture = {name: ':basename', src: ['test/fixtures/i18n/*.json'] };
-      var expected = file.readJSONSync('test/expected/i18n.json');
       var actual = plasma.process(fixture);
 
-      expect(actual).to.deep.equal(expected);
+      expect(actual).to.have.deep.property('fi.select-language', 'Valitse kieli');
       done();
     });
   });
 });
+
 
 
 /**

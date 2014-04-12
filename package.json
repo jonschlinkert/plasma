@@ -23,8 +23,9 @@
     "node": ">= 0.8.0"
   },
   "dependencies": {
-    "expand-hash": "~0.1.1",
+    "expand-hash": "~0.2.0",
     "expander": "~0.3.3",
+    "frep": "~0.2.0",
     "fs-utils": "~0.4.0",
     "lodash": "~2.4.1",
     "verbalize": "~0.1.2"

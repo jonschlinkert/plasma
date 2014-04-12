@@ -6,12 +6,7 @@
  */
 
 const expect = require('chai').expect;
-const file = require('fs-utils');
 const plasma = require('../');
-
-var expectedData = function(filename) {
-  return file.readDataSync('test/expected/' + filename);
-};
 
 
 describe('plasma.load()', function () {
@@ -22,8 +17,7 @@ describe('plasma.load()', function () {
         var fixture = 'test/fixtures/load/string/a.json';
         var actual = plasma.load(fixture).data;
 
-        var expected = expectedData('load/string/a.json');
-        expect(actual).to.eql(expected);
+        expect(actual).to.have.deep.property('a', 'This value is from a.json');
         done();
       });
 
@@ -165,13 +159,13 @@ describe('plasma.load()', function () {
       ];
 
       var actual = plasma.load(fixture).data;
-      var expected = expectedData('complex.json');
-      expect(actual).to.eql(expected);
+      expect(actual).to.have.deep.property('name', 'overwritten');
+      expect(actual).to.have.deep.property('aaa', 'bbbb');
+      expect(actual).to.have.deep.property('one', 'two');
       done();
     });
   });
 });
-
 
 
 

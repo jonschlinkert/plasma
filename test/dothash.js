@@ -6,7 +6,6 @@
  */
 
 const expect = require('chai').expect;
-const file = require('fs-utils');
 const plasma = require('../');
 
 
@@ -48,15 +47,22 @@ describe('when "dot hash" strings are used', function () {
   });
 
 
+
+  /**
+   * We can obviously get rid of the "expected" object and use
+   * something like `.to.have.deep.property` instead, but this
+   * feature might be difficult to understand without seeing
+   * the actual results.
+   */
+
   it('should return an object with the name from the `name` property', function (done) {
     var fixture = {name: ':dirname.:basename', src: ['test/fixtures/i18n/*.json']};
     var actual = plasma.load(fixture).data;
 
     var expectedi18n = {
-      ':dirname.:basename': {
-        'select-language': 'மொழி தேர்வு',
-        es: '<%= es %>',
+      'i18n.en': {
         de: '<%= de %>',
+        es: '<%= es %>',
         fi: '<%= fi %>',
         he: '<%= he %>',
         hi: '<%= hi %>',
@@ -64,7 +70,16 @@ describe('when "dot hash" strings are used', function () {
         ml: '<%= ml %>',
         nl: '<%= nl %>',
         ta: '<%= ta %>'
-      }
+      },
+      'i18n.de': {'select-language': 'Wählen Sie eine Sprache'},
+      'i18n.es': {'select-language': 'Seleccione el idioma'},
+      'i18n.fi': {'select-language': 'Valitse kieli'},
+      'i18n.he': {'select-language': 'בחר את השפה'},
+      'i18n.hi': {'select-language': 'भाषा चुनें'},
+      'i18n.ja': {'select-language': '言語を選択する'},
+      'i18n.ml': {'select-language': 'ഭാഷ തിരഞ്ഞെടുക്കുക'},
+      'i18n.nl': {'select-language': 'Selecteer taal'},
+      'i18n.ta': {'select-language': 'மொழி தேர்வு'}
     };
 
     expect(actual).to.deep.equal(expectedi18n);
@@ -78,9 +93,8 @@ describe('when "dot hash" strings are used', function () {
     var expectedi18n = {
       i18n: {
         en: {
-          'es': '<%= es %>',
-          'es': '<%= es %>',
           'de': '<%= de %>',
+          'es': '<%= es %>',
           'fi': '<%= fi %>',
           'he': '<%= he %>',
           'hi': '<%= hi %>',

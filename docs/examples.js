@@ -1,264 +1,96 @@
-var data = 'foo/*.json';
-var data = ['foo/*.json'];
+/**
+ * All of these should work.
+ */
 
-var data = {
-  expand: true,
-  name: 'foo',
-  src: ['*.json']
-};
+// Strings
 
-var result = {
-  foo: {
+// try to read a file named 'a'. If no file is found, return
+// the original string in the `nomatch` property
+'a';
+'*.json';
 
-  }
-};
+// Arrays
+['a', 'b', 'c'];
+['*.json', 'a', 'b', 'c'];
+['*.json', {src: ['c/*.json']}];
+['*.json', {src: ['*.json'], cwd: 'c'}];
+['*.json', {src: ['*.json'], cwd: 'c', prefixBase: true}];
+['*.json', {src: ['*.json'], cwd: 'c', prefixBase: true, expand: true}];
+['*.json', {src: ['*.json'], cwd: 'c', expand: false}];
+['*.json', {src: ['c/*.json'], expand: false}];
+['*.json', '*.yml', {src: ['c/*.json']}];
+['*.json', '*.yml', {src: ['c/*.json'], name: 'f'}];
+['*.json', '*.yml', {src: ['c/*.json'], name: 'f', expand: false}];
 
-var data = {
-  foo: 'foo',
-  bar: 'bar',
-  baz: 'baz'
-};
+// Objects
+{a: 'b', b: 'c', d: 'd'};
 
-var result = {
-  foo: 'foo',
-  bar: 'bar',
-  baz: 'baz'
-};
+// Object with src
+{src: 'c/*.json' };
+{src: ['c/*.json'] };
+{src: ['c/*.json', 'd/*.json'] };
+{src: ['c/*.json'], b: 'c' };
+{src: ['c/*.json'], b: 'c', {d: 'e'} };
+{src: ['c/*.json'], b: 'c', expand: true };
+{src: ['c/*.json'], b: 'c', expand: false };
 
-var data = {
-  alert: {
-    foo: 'foo',
-    bar: 'bar',
-    baz: 'baz'
-  },
-  navbar: {
-    foo: 'foo',
-    bar: 'bar',
-    baz: 'baz'
-  }
-};
+// Named objects
+{name: 'a', b: 'c' };
+{name: 'a', b: 'c', {d: 'e'} };
+{name: 'a', b: 'c', {d: 'e', name: 'f'} };
+{name: 'a', b: 'c', {d: 'e', name: 'f', src: ['*.json']} };
+{name: 'a', b: 'c', {d: 'e'}, f: ['g', 'h', 'i'] };
+{name: 'a', src: 'c/*.json' };
+{name: 'a', src: '*.json', cwd: 'c' };
+{name: 'a', src: '*.json', cwd: 'c', prefixBase: true };
+{name: 'a', src: ['c/*.json'] };
+{name: 'a', src: ['c/*.json'], b: 'c' };
+{name: 'a', src: ['c/*.json', 'd/*.json'], b: 'c' };
+{name: 'a', src: ['c/*.json'], expand: true };
+{name: 'a', src: ['c/*.json'], expand: false };
 
-var result = {
-  alert: {
-    foo: 'foo',
-    bar: 'bar',
-    baz: 'baz'
-  },
-  navbar: {
-    foo: 'foo',
-    bar: 'bar',
-    baz: 'baz'
-  }
-};
+// Array of objects
+[{a: 'b', b: 'c', d: 'd'}];
+[{a: 'b', b: 'c'}, {d: 'd'}];
+[{a: 'b', b: 'c'}, {src: '*.json'}];
+[{a: 'b', b: 'c'}, {src: '*.json', name: 'f'}];
+[{a: 'b', b: 'c'}, {src: '*.json', name: 'f', expand: false}];
+[{a: 'b', b: 'c'}, {src: '*.json', name: 'f', expand: true}];
 
-var data = [
-  {
-    foo: 'foo',
-    bar: 'bar',
-    baz: 'baz'
-  },
-  {
-    bar: 'bar',
-    baz: 'foo',
-    bang: 'boom'
-  }
-];
+['*.json', {src: '*.json'}, '*.yml', {expand: true, src: ['*.json', '**/*.yml']}, {expand: true, name: 'a', src: ['*.json'], b: 'c'} ];
 
-var result = {
-  foo: 'foo',
-  bar: 'bar',
-  baz: 'foo',
-  bang: 'boom'
-};
-
-var data = [
-  'foo/*.json',
-  {expand: true, name: 'foo', src: ['foo/*.json']},
-  {expand: true, name: 'bar', src: ['bar/*.json']},
-  {expand: true, name: 'baz', src: ['baz/*.json']},
-];
-
-var data = [
-  {quux: 'foo/*.json'},
-  {expand: true, name: 'foo', src: ['foo/*.json']},
-  {expand: true, name: 'bar', src: ['bar/*.json']},
-  {expand: true, name: 'baz', src: ['baz/*.json']},
-];
-
-var result = {
-  quux: 'foo/*.json',
-  foo: {
-
-  }
-};
-
-var data = [
-  {name: 'bar', src: 'bar.json'},
-  {name: 'foo', src: '*.json'},
-];
-
-var result = {
-  name: 'foo',
-  src: '*.json'
-};
-
-var data = [
-  {expand: true, src: 'foo/*.json'},
-  {expand: true, name: 'bar', src: ['bar/*.json']},
-];
-
-var result = {
-  one: 'two',
-  bar: {
-
-  }
-};
-
-var data = [
-  {expand: true, name: ':basename', src: 'blah.json'},
-  {expand: true, name: 'bar', src: ['foo.json']},
-];
-
-var result = {
-  blah: {
-    one: 'two'
-  },
-  bar: {
-
-  }
-};
+// Prop strings
+{name: ':basename', a: 'b' };
+{name: ':basename', expand: true };
+{name: ':basename', src: 'a/b/c/*.json' };
+{name: ':dirname', src: 'a/b/c/*.json' };
 
 
+// dot hashes
+{name: 'a', c: 'd' };
+{name: 'a', c: { d: 'e'} };
+{name: 'a.b', c: 'd' };
+{name: 'a.b', c: { d: 'e'} };
+{name: 'a.b.c', c: { d: 'e'} };
 
-var data = [
-  {expand: true, name: 'foo.bar.baz', src: ['foo/*.json']}
-];
+{name: 'a', {c: ['d', 'e']} };
+{name: 'a.b', {c: ['d', 'e']} };
+{name: 'a.b.c', {c: ['d', 'e']} };
 
-var data = [
-  {expand: true, name: 'i18n.:dirname', src: ['i18n/**/*.json']}
-];
+{name: 'a', src: 'a/b/c/*.json' };
+{name: 'a.b', src: 'a/b/c/*.json' };
+{name: 'a.b.c', src: 'a/b/c/*.json' };
 
+{name: 'a', src: ['a/b/c/*.json'] };
+{name: 'a.b', src: ['a/b/c/*.json'] };
+{name: 'a.b.c', src: ['a/b/c/*.json'] };
 
+{name: 'a', {'b': 'c'} };
+{name: 'a', {'b.c': 'd'} };
+{name: 'a', {'b.c.d': 'e'} };
 
-
-var foo = {
-  assemble: {
-
-    aaa: 'test/fixtures/**/*.json',
-    bbb: ['test/fixtures/a/*.json', 'test/fixtures/b/*.json'],
-    ccc: {
-      files: {
-        'tmp/foo/': ['test/fixtures/a/**/*.txt']
-      }
-    },
-    ddd: {
-      files: [
-        {
-          'tmp/bar/': ['test/fixtures/b/**']
-        },
-        {
-          'tmp/bar/': ['test/fixtures/c/**']
-        }
-      ]
-    },
-    eee: {
-      files: [
-        {
-          dest: 'tmp/bar/',
-          src: ['test/fixtures/b/**']
-        },
-        {
-          dest: 'tmp/bar/',
-          src: ['test/fixtures/c/**']
-        }
-      ]
-    },
-    fff: {
-      files: {
-        'tmp/bar/': ['test/fixtures/b/**'],
-        'tmp/baz/': ['test/fixtures/c/**/*.md']
-      }
-    },
-    ggg: {
-      options: {
-        cwd: 'test'
-      },
-      files: {
-        'tmp/bar/': ['fixtures/b/**'],
-        'tmp/baz/': ['fixtures/c/**']
-      }
-    }
-  }
-};
-
-
-var config = {
-  one: {
-    data: {
-      cwd: '.',
-      src: ['tmp/*.json'],
-    }
-  },
-  two: {
-    cwd: '.',
-    src: 'test/fixtures/data/*.json',
-  },
-  three: {
-    data: ['test/fixtures/data/collections/*.json']
-  },
-  four: {
-    data: [
-      {
-        "name": "plasma",
-        "version": "0.1.0",
-        "description": "Path extras and utilities to extend the Node.js path module.",
-        "repository": {
-          "type": "git",
-          "url": "https://github.com/assemble/normalize-data.git"
-        },
-        "bugs": {
-          "url": "https://github.com/assemble/normalize-data/issues"
-        },
-        "licenses": [{
-          "type": "MIT",
-          "url": "https://github.com/assemble/normalize-data/blob/master/LICENSE-MIT"
-        }],
-        "main": "index.js",
-        "scripts": {
-          "test": "mocha"
-        },
-        "engines": {
-          "node": ">= 0.8.0"
-        },
-        "devDependencies": {
-          "mocha": "~1.17.0",
-          "chai": "~1.8.1",
-          "benchmark": "~1.0.0"
-        },
-        "keywords": ["file system", "file", "fs", "node", "node.js", "path", "utils"],
-        "dependencies": {
-          "globule": "~0.2.0",
-          "fs-utils": "~0.3.4",
-          "lodash": "~2.4.1",
-          "chalk": "~0.4.0"
-        }
-      },
-      {
-        src: 'test/fixtures/*.json'
-      },
-    ]
-  },
-  five: {
-    data: ['test/fixtures/*.json', 'test/fixtures/data/*.json']
-  },
-  six: {
-    data: [
-      {
-        src: 'test/fixtures/*.json'
-      },
-      {
-        src: 'test/fixtures/data/*.json'
-      }
-    ]
-  }
-};
+// Prop strings with dot hashes
+{name: ':dirname.:basename', src: ['i18n/*.json'] };
+{name: ':basename', expand: true };
+{name: ':basename', src: 'a/b/c/*.json' };
+{name: ':dirname', src: 'a/b/c/*.json' };

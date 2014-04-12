@@ -34,20 +34,25 @@ var namespaceFiles = function(configObject, options) {
 
   var name = config.name;
   var src = config.src;
+  delete config.name;
+  delete src.name;
 
   var files = file.expand(src, options);
   var len = files.length;
 
   if (len === 0) {
-    data = data.concat(_.extend(config, {
+    data = data.concat({
       name: name,
       nomatch: src
-    }));
+    });
   } else {
     for (var j = 0; j < len; j++) {
+      var filepath = files[j];
+      var newname = renameProp(name, filepath);
       data = data.concat({
-        name: name,
-        src: [files[j]]
+        __normalized__: true,
+        name: newname,
+        src: [filepath]
       });
     }
   }
@@ -57,20 +62,23 @@ var namespaceFiles = function(configObject, options) {
     delete config.dothash;
     data.forEach(function(obj) {
       obj.src.map(function(filepath) {
-        content.name = renameProp(obj.name, filepath);
+        content.name = renameProp(name, filepath);
         delete obj.name;
         content.src = file.readDataSync(filepath);
+
         delete obj.src;
       });
-      _.defaults(hash, config);
       delete hash.name;
       hash[content.name] = content.src;
+      hash.__normalized__ = true;
       hash = expandHash(hash);
     });
     data = data.concat(hash);
   }
 
-  return data;
+  return data.map(function(obj) {
+    return _.defaults(obj, config);
+  });
 };
 
 
@@ -167,12 +175,17 @@ plasma.normalizeObject = function (obj, options) {
     delete obj.expand;
   }
 
-  if ('cwd' in obj && 'srcBase' in obj) {
-    options.cwd = obj.cwd || obj.srcBase;
+  if ('cwd' in obj) {
+    options.cwd = obj.cwd;
     delete obj.srcBase;
     delete obj.cwd;
   }
 
+  if ('prefixBase' in obj) {
+    options.prefixBase = obj.prefixBase;
+    delete obj.srcBase;
+    delete obj.prefixBase;
+  }
 
   if ('name' in obj && !obj.src) {
     // If no `src` is found, return the object as-is
@@ -311,20 +324,6 @@ plasma.load = function(config, options) {
               nomatch = nomatch.concat(filepath);
             }
           } else {
-            // var hash = {}, content = {};
-            // if (detectPattern(obj.name)) {
-            //   obj.src.map(function(filepath) {
-            //     content.name = renameProp(obj.name, filepath);
-            //     content.src = file.readDataSync(filepath);
-            //   });
-            //   hash[content.name] = content.src;
-            //   delete obj.dothash;
-            //   delete obj.name;
-            //   delete obj.src;
-            //   _.merge(data, hash);
-            // console.log(data)
-            // }
-
             if (file.exists(filepath)) {
               _.merge(meta, file.readDataSync(filepath));
             } else {
@@ -339,7 +338,6 @@ plasma.load = function(config, options) {
           delete obj.dothash;
           delete obj.name;
         }
-
 
         if ('name' in obj && 'src' in obj) {
           name[obj.name] = meta;
@@ -357,7 +355,6 @@ plasma.load = function(config, options) {
         }
 
       }
-
       _.merge(data, obj);
     }
   });

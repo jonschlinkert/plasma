@@ -5,9 +5,7 @@
  * Licensed under the MIT license.
  */
 
-const path = require('path');
 const file = require('fs-utils');
-const _ = require('lodash');
 const expect = require('chai').expect;
 const plasma = require('../');
 
@@ -44,7 +42,7 @@ describe('processConfig:', function () {
             var files = [];
             file.expand(config.src).map(function(filepath) {
               var obj = {name: file.name(filepath), src: [filepath]};
-              files = files.concat(obj)
+              files = files.concat(obj);
             });
             if (files.length > 0) {return files; }
             return {name: config.name, src: config.src};
@@ -75,7 +73,7 @@ describe('processConfig:', function () {
             var files = [];
             file.expand(config.src).map(function(filepath) {
               var obj = {name: file.name(filepath), src: [filepath]};
-              files = files.concat(obj)
+              files = files.concat(obj);
             });
             if (files.length > 0) {return files; }
             return {name: config.name, src: config.src};

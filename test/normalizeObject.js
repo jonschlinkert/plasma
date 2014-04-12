@@ -5,9 +5,6 @@
  * Licensed under the MIT license.
  */
 
-const path = require('path');
-const file = require('fs-utils');
-const _ = require('lodash');
 const expect = require('chai').expect;
 const plasma = require('../');
 
