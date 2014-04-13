@@ -56,7 +56,7 @@ describe('normalizeArray()', function () {
       var fixture = [{ name: 'fez', src: ['*.json']}];
       var actual = plasma.normalize(fixture);
 
-      var expected = [{__normalized__: true, name: 'fez', src: ['bower.json', 'package.json']}];
+      var expected = [{__normalized__: true, __namespace__: true, name: 'fez', src: ['bower.json', 'package.json']}];
       expect(actual).to.deep.equal(expected);
       done();
     });
@@ -91,7 +91,7 @@ describe('normalizeArray()', function () {
 
       var expected = [
         {__normalized__: true, quux: 'a/*.json'},
-        {__normalized__: true, name: 'foo', src: ['test/fixtures/b.json', 'test/fixtures/c.json']}
+        {__normalized__: true, __namespace__: true, name: 'foo', src: ['test/fixtures/b.json', 'test/fixtures/c.json']}
       ];
       expect(actual).to.deep.equal(expected);
       done();

@@ -52,9 +52,9 @@ describe('processConfig:', function () {
         var actual = plasma.normalize(fixture);
 
         var expected = [
-          {__normalized__: true, name: 'a', src: ['test/fixtures/a.yml']},
-          {__normalized__: true, name: 'b', src: ['test/fixtures/b.json']},
-          {__normalized__: true, name: 'c', src: ['test/fixtures/c.json']},
+          {__normalized__: true, __namespace__: true, name: 'a', src: ['test/fixtures/a.yml']},
+          {__normalized__: true, __namespace__: true, name: 'b', src: ['test/fixtures/b.json']},
+          {__normalized__: true, __namespace__: true, name: 'c', src: ['test/fixtures/c.json']},
         ];
         expect(actual).to.deep.equal(expected);
         done();
@@ -83,7 +83,7 @@ describe('processConfig:', function () {
         var actual = plasma.normalize(fixture);
 
         var expected = [
-          {__normalized__: true, 'no-files': ['foo/bar/*.{json,yml}'], nomatch: ['foo/bar/*.{json,yml}']},
+          {__normalized__: true, __namespace__: true, 'no-files': ['foo/bar/*.{json,yml}'], nomatch: ['foo/bar/*.{json,yml}']},
         ];
         expect(actual).to.deep.equal(expected);
         done();

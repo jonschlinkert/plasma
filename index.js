@@ -165,6 +165,14 @@ plasma.normalizeObject = function (obj, options) {
 
   var data = [];
 
+  // If both `src` and `name` exist, then we need to namespace
+  // the data loaded from `src`, unless `__namespace__: false`
+  // was defined earlier or by the user.
+
+  if (obj.src && obj.name) {
+    obj.__namespace__ = obj.__namespace__ || true;
+  }
+
   // `processConfig` function
   if ('processConfig' in obj && type(obj.processConfig) === 'function') {
     obj = plasma.normalize(obj.processConfig(obj));
@@ -175,74 +183,109 @@ plasma.normalizeObject = function (obj, options) {
     delete obj.expand;
   }
 
-  if ('cwd' in obj) {
+  if (obj.cwd) {
     options.cwd = obj.cwd;
     delete obj.srcBase;
     delete obj.cwd;
   }
 
-  if ('prefixBase' in obj) {
+  if (obj.prefixBase) {
     options.prefixBase = obj.prefixBase;
-    delete obj.srcBase;
     delete obj.prefixBase;
   }
 
-  if ('name' in obj && !obj.src) {
-    // If no `src` is found, return the object as-is
-    obj.__normalized__ = true;
-    data = data.concat(obj);
-  } else if ('src' in obj && !obj.name) {
-    var srcfiles = file.expand(obj.src, options);
-    var srcObj = {};
-    if (srcfiles.length === 0) {
-      var origSrc = obj.src;
-      delete obj.src;
-      srcObj = _.defaults({nomatch: origSrc}, obj);
-    } else {
-      srcObj = _.defaults({src: srcfiles}, obj);
-    }
-    data = data.concat(_.merge({__normalized__: true}, srcObj));
-  } else if ('name' in obj && 'src' in obj) {
+  if (obj.__namespace__) {
     obj.src = arrayify(obj.src);
 
-   /**
-    * If obj.name looks like a prop string, try to
-    * match it to a method on the path module, then use the
-    * method to generate the name of the object for each file.
-    *
-    *   {'name': ':basename', src: ['a/*.json', 'b/*.json']}
-    */
+    // Prop strings
+    //
+    // If obj.name looks like a prop string, try to
+    // match it to a method on the path module, then use the
+    // method to generate the name of the object for each file.
+    //
+    //   {'name': ':basename', src: ['a/*.json', 'b/*.json']}
 
     if (detectPattern(obj.name)) {
       data = data.concat(namespaceFiles(obj, options));
+
     } else {
       var files = file.expand(obj.src, options);
 
+      // If `expand: false` is set, don't load the data defined in src,
+      // just rename the `src` key to the value defined in `name`.
       if (options.expand === false) {
         obj[obj.name] = obj.src;
-        delete obj.src;
-      }
 
-      /**
-       *  => {'name': 'fez', src: ['*.json']}
-       */
-
-      if (files.length > 0) {
-        obj = _.extend({}, obj, {__normalized__: true, name: obj.name, src: files});
-        data = data.concat(obj);
-      } else {
-        obj[obj.name] = obj.src;
-        obj = _.extend({}, obj, {__normalized__: true, name: obj.name, nomatch: obj.src});
+        // Now, delete name and src so this object isn't evaluated again.
         delete obj.name;
         delete obj.src;
+
+        obj = _.extend(obj, {__normalized__: true});
+        data = data.concat(obj);
+
+      } else if (files.length > 0) {
+
+        // Otherwise, proceed with namespacing. We need to create a structure like this
+        // => {'name': 'fez', src: ['*.json']}
+
+        // If globule returned files, we'll add them to the src array.
+        obj = _.extend(obj, {__normalized__: true, name: obj.name, src: files});
+        data = data.concat(obj);
+
+      } else {
+
+        // But if no files are actually found, then, then push the original src value
+        // to the `nomatch` array.
+        obj[obj.name] = obj.src;
+        obj = _.extend(obj, {__normalized__: true, name: obj.name, nomatch: obj.src});
+
+
+        // Since no src files were found, we need to get rid of obj.name and obj.src,
+        // so they aren't evaluated again in the process.
+        delete obj.name;
+        delete obj.src;
+
         data = data.concat(obj);
       }
     }
+
+  } else if (obj.name && !obj.src) {
+    // If no `src` is in obj, let's just return the object as-is,
+    // since we can assume that `name` has a different purpose.
+    obj.__normalized__ = true;
+    data = data.concat(obj);
+
+  } else if ('src' in obj && !obj.name) {
+
+    // If a `src` does exists but `name` doesn't, we need to load
+    // in the data from src and extend the root object directly.
+    var srcfiles = file.expand(obj.src, options);
+    var srcObj = {};
+
+    if (srcfiles.length === 0) {
+      // If we don't get any files back from globule,
+      // push the original src value into `nomatch`
+      var origSrc = obj.src;
+      delete obj.src;
+
+      srcObj = _.defaults({nomatch: origSrc }, obj);
+      data = data.concat(_.merge({__normalized__: true }, srcObj));
+
+    } else {
+      // If we actually get files back from globule, add
+      // the files array to the src property and extend the
+      // object with missing values from the original config.
+      srcObj = _.defaults({src: srcfiles}, obj);
+      data = data.concat(_.merge({__normalized__: true }, srcObj));
+    }
+
+
   } else {
-    // If no `src` is found, return the object as-is
+    // If we missed any scenarios, just return the object as-is
     obj.__normalized__ = true;
     data = data.concat(obj);
   }
+
   return data;
 };
 
@@ -290,63 +333,69 @@ plasma.normalize = function(value, options) {
 plasma.load = function(config, options) {
   options = options || {};
   config = _.cloneDeep(config);
-  var orig = config, nomatch = [];
+  var orig = config;
+  var nomatch = [], data = {}, name = {};
 
+  // First, normalize config values
   config = plasma.normalize(config, options);
-  var data = {}, name = {};
+
   config.forEach(function (obj) {
 
     if ('dothash' in obj) {
       options.dothash = obj.dothash;
+      delete obj.dothash;
     }
 
     if ('nomatch' in obj) {
       nomatch = nomatch.concat(obj.nomatch);
     }
 
+    // If the object has not been normalize, we could run `plasma.normalize` here,
+    // but something is probably amiss, so throw an error instead.
     if (!obj.__normalized__) {
       throw new Error('Config should be normalized. Something has gone awry.');
+
+    // Everything looks good, proceed...
     } else {
 
-      if (!obj.name && !obj.src) {
+      // If neither a name, nor a src key exist it's probably just an object of data,
+      // so merge it into the context. Similarly, if `expand: false` was defined,
+      // then we want to leave the src value as-is.
+      if ((!obj.name && !obj.src) || ((obj.expand && obj.expand !== false) && 'src' in obj)) {
         _.merge(data, obj);
-      } else if ((obj.expand && obj.expand !== false) && 'src' in obj) {
-        _.merge(data, obj);
+
+      // Otherwise, continue with expansion.
       } else {
         var meta = {}, hash = {}, hashCache = {};
-
+        // `src` should be an array of files by this point.
         _.forEach(obj.src, function (filepath) {
-
-          if ('dothash' in options && 'name' in obj) {
-            if (file.exists(filepath)) {
+          if (file.exists(filepath)) {
+            if ('dothash' in options && 'name' in obj) {
               _.merge(hashCache, file.readDataSync(filepath));
-            } else {
-              nomatch = nomatch.concat(filepath);
+            } else if ('name' in obj && 'src' in obj) {
+              name[obj.name] = file.readDataSync(filepath);
+              _.merge(meta, name);
+
+              if (!options.retainKeys) {
+                delete obj.name;
+              }
+
+            } else if (!obj.name && 'src' in obj) {
+              var srcData = file.readDataSync(filepath);
+              _.merge(meta, srcData);
             }
           } else {
-            if (file.exists(filepath)) {
-              _.merge(meta, file.readDataSync(filepath));
-            } else {
-              nomatch = nomatch.concat(filepath);
-            }
+            nomatch = nomatch.concat(filepath);
           }
         });
 
-        if ('dothash' in obj && 'name' in obj) {
+        // Now that we're out of the loop, merge the hashCash
+        // object into the meta object.
+        if ('dothash' in options && 'name' in obj) {
           hash[obj.name] = hashCache;
           _.merge(meta, expandHash(hash) || {});
           delete obj.dothash;
           delete obj.name;
-        }
-
-        if ('name' in obj && 'src' in obj) {
-          name[obj.name] = meta;
-          _.merge(data, name);
-          if (!options.retainKeys) {
-            delete obj.name;
-          }
-        } else {
-          _.merge(data, meta || {});
         }
 
         if (!options.retainKeys) {
@@ -354,8 +403,8 @@ plasma.load = function(config, options) {
           delete obj.src;
         }
 
+        _.merge(data, obj, meta || {});
       }
-      _.merge(data, obj);
     }
   });
 
@@ -363,6 +412,7 @@ plasma.load = function(config, options) {
   if ('__normalized__' in data) {
     nomatch = nomatch.concat(data.nomatch);
     delete data.__normalized__;
+    delete data.__namespace__;
     delete data.nomatch;
     delete data.expand;
     delete data.src;

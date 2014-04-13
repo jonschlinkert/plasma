@@ -62,9 +62,9 @@ describe('prop-strings / plasma.normalize()', function () {
       var actual = plasma.normalize(fixture);
 
       var expected = [
-        {__normalized__: true, name: 'a', src: ['test/fixtures/a.yml']},
-        {__normalized__: true, name: 'b', src: ['test/fixtures/b.json']},
-        {__normalized__: true, name: 'c', src: ['test/fixtures/c.json']},
+        {__normalized__: true, __namespace__: true, name: 'a', src: ['test/fixtures/a.yml']},
+        {__normalized__: true, __namespace__: true, name: 'b', src: ['test/fixtures/b.json']},
+        {__normalized__: true, __namespace__: true, name: 'c', src: ['test/fixtures/c.json']},
       ];
       expect(actual).to.deep.equal(expected);
       done();
@@ -83,7 +83,7 @@ describe('prop-strings / plasma.normalizeObject()', function () {
         var fixture = { name: 'fez', src: ['*.json', '*.json'] };
         var actual = plasma.normalizeObject(fixture);
 
-        var expected = [{__normalized__: true, name: 'fez', src: ['bower.json', 'package.json']}];
+        var expected = [{__normalized__: true, __namespace__: true, name: 'fez', src: ['bower.json', 'package.json']}];
         expect(actual).to.deep.equal(expected);
         done();
       });
@@ -93,9 +93,9 @@ describe('prop-strings / plasma.normalizeObject()', function () {
         var actual = plasma.normalizeObject(fixture);
 
         var expected = [
-          {__normalized__: true, name: 'b', src: ['test/fixtures/b.json']},
-          {__normalized__: true, name: 'c', src: ['test/fixtures/c.json']},
-          {__normalized__: true, name: 'a', src: ['test/fixtures/a.yml']},
+          {__normalized__: true, __namespace__: true, name: 'b', src: ['test/fixtures/b.json']},
+          {__normalized__: true, __namespace__: true, name: 'c', src: ['test/fixtures/c.json']},
+          {__normalized__: true, __namespace__: true, name: 'a', src: ['test/fixtures/a.yml']},
         ];
         expect(actual).to.deep.equal(expected);
         done();
@@ -106,9 +106,9 @@ describe('prop-strings / plasma.normalizeObject()', function () {
         var actual = plasma.normalizeObject(fixture);
 
         var expected = [
-          {__normalized__: true, name: 'b', src: ['test/fixtures/b.json']},
-          {__normalized__: true, name: 'c', src: ['test/fixtures/c.json']},
-          {__normalized__: true, name: 'a', src: ['test/fixtures/a.yml']},
+          {__normalized__: true, __namespace__: true, name: 'b', src: ['test/fixtures/b.json']},
+          {__normalized__: true, __namespace__: true, name: 'c', src: ['test/fixtures/c.json']},
+          {__normalized__: true, __namespace__: true, name: 'a', src: ['test/fixtures/a.yml']},
         ];
         expect(actual).to.deep.equal(expected);
         done();
@@ -119,7 +119,7 @@ describe('prop-strings / plasma.normalizeObject()', function () {
         var actual = plasma.normalizeObject(fixture);
 
         var expected = [
-          {__normalized__: true, name: 'a', src: ['test/fixtures/a.yml']}
+          {__normalized__: true, __namespace__: true, name: 'a', src: ['test/fixtures/a.yml']}
         ];
         expect(actual).to.deep.equal(expected);
         done();
