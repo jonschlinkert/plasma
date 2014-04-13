@@ -2,7 +2,28 @@
 
 > Build a context object to pass to templates. Plasma can load data from a flexible range of configuration and file formats, including JSON/YAML data files defined with minimatch/glob patterns.
 
+Plasma makes it easy to load data. Here are some examples:
+
+```js
+var config = [
+  // load data to the root object
+  ['components/*.json'],
+  // load data to the `pkg` object
+  {name: 'pkg', src: 'package.json'},
+  // load data to the `site` object
+  {name: 'site', src: '.assemblerc.yml'},
+  // load data to an object named after the basename of each file
+  // e.g. foo.json is loaded to `{foo: {// data}}`
+  {name: ':basename', src: ['data/*.{json,yml}']},
+  // Load data from src to `{a: {b: {c: {// data}}}`
+  {dothash: true, name: 'a.b.c', src: ['*.json']}
+];
+
+// Load in config data.
+var data = plasma.load(config);
+```
 ## Install
+
 Install with [npm](npmjs.org):
 
 ```bash
@@ -10,7 +31,7 @@ npm i plasma --save
 ```
 
 
-## What does Plasma do?
+## What problem is Plasma solving?
 #### problem
 
 Let's say you need to load data for templates.
