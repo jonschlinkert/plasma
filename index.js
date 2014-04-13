@@ -353,7 +353,7 @@ plasma.load = function(config, options) {
     // If the object has not been normalize, we could run `plasma.normalize` here,
     // but something is probably amiss, so throw an error instead.
     if (!obj.__normalized__) {
-      throw new Error('Config should be normalized. Something has gone awry.');
+      throw new Error('  [plasma]: config should be normalized by this point, something has gone awry.');
 
     // Everything looks good, proceed...
     } else {

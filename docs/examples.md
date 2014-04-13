@@ -53,7 +53,7 @@ You may pass a string, object or array to either `plasma.normalize()` or `plasma
 [{a: 'b', b: 'c'}, {src: '*.json', name: 'f', expand: false }];
 [{a: 'b', b: 'c'}, {src: '*.json', name: 'f'}];
 
-['*.json', {src: '*.json'}, '*.yml',, src: ['*.json', '**/*.yml']},, name: 'a', src: ['*.json'], b: 'c'} ];
+['*.json', {src: '*.json'}, '*.yml', src: ['*.json', '**/*.yml']},, name: 'a', src: ['*.json'], b: 'c'} ];
 
 // Prop strings
 {name: ':basename', a: 'b' };
