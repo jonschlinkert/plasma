@@ -227,7 +227,7 @@ describe('complete object', function () {
       var fixture = {src: ['a']};
       var actual = plasma.load(fixture);
 
-      var expected = {data: {}, nomatch: ['a'], orig: {src: ['a']}};
+      var expected = {data: {}, nomatch: ['a'], orig: {src: ['a'] }, modules: {} };
       expect(actual).to.deep.equal(expected);
       done();
     });
@@ -237,7 +237,7 @@ describe('complete object', function () {
     it('should expand the glob patterns to filepaths on the src property', function (done) {
       var fixture = {src: ['test/fixtures/b.json']};
       var actual = plasma.load(fixture);
-      var expected = {orig: {src: ["test/fixtures/b.json"] }, nomatch: [], data: {ccc: "dddd"} };
+      var expected = {orig: {src: ["test/fixtures/b.json"] }, nomatch: [], data: {ccc: "dddd"}, modules: {} };
       expect(actual).to.deep.equal(expected);
       done();
     });

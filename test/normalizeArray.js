@@ -24,11 +24,11 @@ describe('normalizeArray()', function () {
   });
 
   describe('when an array of strings is passed, and they are not glob patterns or file paths:', function () {
-    it('should return an array of objects with `__normalized__` the original strings', function (done) {
+    it('should return an array of objects with `__normalized__` the original strings, and flag them with __fn__:true be tried as npm modules', function (done) {
       var fixture = ['a', 'b', 'c'];
       var actual = plasma.normalizeArray(fixture);
 
-      var expected = [{__normalized__: true, nomatch: ['a', 'b', 'c']}];
+      var expected = [{__normalized__: true, nomatch: ['a', 'b', 'c'], __fn__: true}];
       expect(actual).to.deep.equal(expected);
       done();
     });
@@ -40,8 +40,8 @@ describe('normalizeArray()', function () {
       var actual = plasma.normalizeArray(fixture);
 
       var expected = [
-        {__normalized__: true, nomatch: ['a', 'b']},
-        {__normalized__: true, src: ['bower.json', 'package.json']}
+        { __normalized__: true, src: ['bower.json', 'package.json'] },
+        { __normalized__: true, nomatch: ['a', 'b'], __fn__: true },
       ];
       expect(actual).to.deep.equal(expected);
       done();
