@@ -100,7 +100,6 @@ describe('plasma.load()', function () {
   });
 
 
-
   describe('when modules are defined', function () {
     it('should be able to pass in a config object as a second parameter', function (done) {
       var fixture = {src: ['test/fixtures/fn/*.js']};
@@ -109,6 +108,23 @@ describe('plasma.load()', function () {
       expect(actual.resolved.lowercase('FOO')).to.equal('foo');
       expect(actual.resolved).to.include.keys('convert');
       expect(actual.resolved.convert).to.be.a('function');
+      done();
+    });
+  });
+
+
+  describe('when both modules and data are defined', function () {
+    it('should return both', function (done) {
+      var fixture = [{src: ['test/fixtures/fn/*.js']}, {name: 'alert', src: ['test/fixtures/*.yml']}];
+      var actual = plasma.load(fixture, {config: {a: {b: 'c'}}});
+
+      var data = actual.data;
+      var modules = actual.modules;
+
+      expect(data.alert).to.include.keys('aaa');
+      expect(modules.resolved.lowercase('FOO')).to.equal('foo');
+      expect(modules.resolved).to.include.keys('convert');
+      expect(modules.resolved.convert).to.be.a('function');
       done();
     });
   });

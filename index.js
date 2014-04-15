@@ -489,7 +489,6 @@ plasma.load = function(config, options) {
         _.merge(modules, plasma.loadLocal(obj, options));
       }
 
-      // data = data.concat(namespaceFiles(obj, options));
     } else if ((!obj.name && !obj.src) || (obj.expand && 'src' in obj)) {
       // If neither a name, nor a src key exist it's probably just an object of data,
       // so merge it into the context. Similarly, if `expand: false` was defined,
