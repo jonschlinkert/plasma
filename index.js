@@ -402,9 +402,16 @@ plasma.load = function(config, options) {
           delete obj.expand;
           delete obj.src;
         }
-
         _.merge(data, obj, meta || {});
       }
+    }
+
+    // If dothash:true is still in the options, that means an
+    // object's keys should be expanded, instead of the value
+    // of `name`.
+    if ('dothash' in options) {
+      data = expandHash(data);
+      delete data.dothash;
     }
   });
 
@@ -443,9 +450,7 @@ plasma.process = function(obj, options) {
   var result = {};
 
   obj = plasma.load(obj, options || {}).data;
-  Object.keys(obj).forEach(function(key) {
-    result[key] = expander.process(obj, obj[key], options || {});
-  });
+  result = expander.process(obj, obj, options || {});
 
   return result;
 };
