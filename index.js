@@ -5,6 +5,7 @@
  * Licensed under the MIT license.
  */
 
+const path = require('path');
 const file = require('fs-utils');
 const expander = require('expander');
 const replace = require('frep');
@@ -93,8 +94,11 @@ var namespaceFiles = function(configObject, options) {
  * @api public
  */
 
-plasma.normalizeString = function(patterns, options) {
-  return plasma.normalize({src: [patterns]}, options);
+plasma.normalizeString = function(pattern, options) {
+  // if (path.extname(pattern) === '.js') {
+  //   return plasma.normalize({__fn__: true, src: pattern}, options);
+  // }
+  return plasma.normalize({src: [pattern]}, options);
 };
 
 /**
@@ -109,10 +113,10 @@ plasma.normalizeString = function(patterns, options) {
 
 plasma.normalizeArray = function (config, options) {
   var arr = _.cloneDeep(config);
-  var data = [], strings = [], objects = [], arrays = [];
   options = options || {};
 
-  var files = [];
+  var data = [], strings = [], objects = [], arrays = [], functions = [], files = [];
+
   arr.forEach(function (value) {
     if (type(value) === 'object') {
       objects = objects.concat(value);
@@ -121,6 +125,9 @@ plasma.normalizeArray = function (config, options) {
       if (patterns.length < 1) {
         strings = strings.concat(value);
       } else {
+        if (path.extname(patterns[0]) === '.js') {
+          functions = functions.concat({__fn__: true, src: patterns});
+        }
         files = files.concat(patterns);
       }
     } else {
@@ -128,24 +135,30 @@ plasma.normalizeArray = function (config, options) {
     }
   });
 
-  if (arrays.length > 0) {
-    arrays.forEach(function(arr) {
-      data = data.concat(plasma.normalize(arr, options));
-    });
-  }
-
   if (strings.length > 0) {
     data = data.concat({__normalized__: true, nomatch: strings});
-  }
-
-  if (files.length > 0) {
-    data = data.concat({__normalized__: true, src: files});
   }
 
   if (objects.length > 0) {
     objects.forEach(function(obj) {
       data = data.concat(plasma.normalize(obj, options));
     });
+  }
+
+  if (arrays.length > 0) {
+    arrays.forEach(function(arr) {
+      data = data.concat(plasma.normalize(arr, options));
+    });
+  }
+
+  if (functions.length > 0) {
+    functions.forEach(function(fn) {
+      data = data.concat(plasma.normalize(fn, options));
+    });
+  }
+
+  if (files.length > 0) {
+    data = data.concat({__normalized__: true, src: files});
   }
 
   return data;
@@ -173,7 +186,11 @@ plasma.normalizeObject = function (obj, options) {
     obj.__namespace__ = obj.__namespace__ || true;
   }
 
-  // `processConfig` function
+  if ('__fn__' in obj) {
+    // data = data.concat(namespaceFiles(obj, options));
+  }
+
+  // Allow a function to customizie how the config is processe.
   if ('processConfig' in obj && type(obj.processConfig) === 'function') {
     obj = plasma.normalize(obj.processConfig(obj));
   }
@@ -338,6 +355,11 @@ plasma.load = function(config, options) {
 
   // First, normalize config values
   config = plasma.normalize(config, options);
+  console.log(config)
+
+  // if ('__fn__' in obj) {
+  //   // data = data.concat(namespaceFiles(obj, options));
+  // }
 
   config.forEach(function (obj) {
 
@@ -368,26 +390,26 @@ plasma.load = function(config, options) {
       } else {
         var meta = {}, hash = {}, hashCache = {};
         // `src` should be an array of files by this point.
-        _.forEach(obj.src, function (filepath) {
-          if (file.exists(filepath)) {
-            if ('dothash' in options && 'name' in obj) {
-              _.merge(hashCache, file.readDataSync(filepath));
-            } else if ('name' in obj && 'src' in obj) {
-              name[obj.name] = file.readDataSync(filepath);
-              _.merge(meta, name);
+        // _.forEach(obj.src, function (filepath) {
+        //   if (file.exists(filepath)) {
+        //     if ('dothash' in options && 'name' in obj) {
+        //       _.merge(hashCache, file.readDataSync(filepath));
+        //     } else if ('name' in obj && 'src' in obj) {
+        //       name[obj.name] = file.readDataSync(filepath);
+        //       _.merge(meta, name);
 
-              if (!options.retainKeys) {
-                delete obj.name;
-              }
+        //       if (!options.retainKeys) {
+        //         delete obj.name;
+        //       }
 
-            } else if (!obj.name && 'src' in obj) {
-              var srcData = file.readDataSync(filepath);
-              _.merge(meta, srcData);
-            }
-          } else {
-            nomatch = nomatch.concat(filepath);
-          }
-        });
+        //     } else if (!obj.name && 'src' in obj) {
+        //       var srcData = file.readDataSync(filepath);
+        //       _.merge(meta, srcData);
+        //     }
+        //   } else {
+        //     nomatch = nomatch.concat(filepath);
+        //   }
+        // });
 
         // Now that we're out of the loop, merge the hashCash
         // object into the meta object.
