@@ -36,10 +36,9 @@ var renameProp = function(str, filepath) {
  */
 
 plasma.loadNpm = function(modules, options) {
-  options = options || {};
+  var names = modules.nomatch;
   var config = options.config || {};
 
-  var names = modules.nomatch;
   var resolved = {}, unresolved = [];
 
   names.forEach(function(name) {
@@ -55,8 +54,8 @@ plasma.loadNpm = function(modules, options) {
   });
 
   return {
-    resolved: resolved,
-    unresolved: unresolved,
+    resolved: resolved || {},
+    unresolved: unresolved || []
   };
 };
 
@@ -69,9 +68,10 @@ plasma.loadNpm = function(modules, options) {
 
 plasma.loadLocal = function(modules, options) {
   options = options || {};
-  var config = options.config || {};
 
   var filepaths = modules.src;
+  var config = options.config || {};
+
   var resolved = {}, unresolved = [];
 
   filepaths.forEach(function(filepath) {
@@ -88,8 +88,8 @@ plasma.loadLocal = function(modules, options) {
   });
 
   return {
-    resolved: resolved,
-    unresolved: unresolved,
+    resolved: resolved || {},
+    unresolved: unresolved || []
   };
 };
 
@@ -463,6 +463,10 @@ plasma.load = function(config, options) {
   var orig = config;
   var nomatch = [], data = {}, name = {}, modules = {};
 
+  if(options.cwd) {
+    options.prefixBase = true;
+  }
+
   // First, normalize config values
   config = plasma.normalize(config, options);
 
@@ -574,7 +578,10 @@ plasma.load = function(config, options) {
     orig: orig,
     nomatch: nomatch,
     data: data || {},
-    modules: modules
+    modules: {
+      resolved: modules.resolved || {},
+      unresolved: modules.unresolved || []
+    }
   };
 };
 
