@@ -35,10 +35,11 @@ var renameProp = function(str, filepath) {
  * @return  {Object}
  */
 
-plasma.loadNpm = function(modules, params) {
-  var names = modules.nomatch;
-  var config = params.config || {};
+plasma.loadNpm = function(modules, options) {
+  options = options || {};
+  var config = options.config || {};
 
+  var names = modules.nomatch;
   var resolved = {}, unresolved = [];
 
   names.forEach(function(name) {
@@ -66,18 +67,20 @@ plasma.loadNpm = function(modules, params) {
  * @return  {Object}
  */
 
-plasma.loadLocal = function(modules, params) {
-  var filepaths = modules.src;
-  var config = params.config || {};
+plasma.loadLocal = function(modules, options) {
+  options = options || {};
+  var config = options.config || {};
 
+  var filepaths = modules.src;
   var resolved = {}, unresolved = [];
 
   filepaths.forEach(function(filepath) {
+    filepath = path.resolve(filepath);
     try {
-      _.merge(resolved, require(path.resolve(filepath))(config));
+      _.merge(resolved, require(filepath)(config));
     } catch (err) {
       try {
-        _.merge(resolved, require(path.resolve(filepath)));
+        _.merge(resolved, require(filepath));
       } catch (err) {
         unresolved = unresolved.concat(filepath);
       }
@@ -158,7 +161,7 @@ var namespaceFiles = function(configObject, options) {
  */
 
 plasma.normalizeString = function(pattern, options) {
-  if (path.extname(pattern) === '.js' || !file.ext(pattern)) {
+  if (path.extname(pattern) === '.js' || path.extname(pattern) === '.coffee' || !file.ext(pattern)) {
     var files = file.expand(pattern, options);
     if (files.length > 0) {
       return plasma.normalize({__fn__: true, __normalized__: true, src: files}, options);
@@ -218,7 +221,7 @@ plasma.normalizeArray = function (config, options) {
   }
 
   if (strings.length > 0) {
-    data = data.concat({__normalized__: true, __fn__: true, nomatch: strings});
+    data = data.concat({__normalized__: true, nomatch: strings});
   }
 
   if (arrays.length > 0) {
@@ -482,7 +485,11 @@ plasma.load = function(config, options) {
     } else if ('__fn__' in obj) {
 
       if ('nomatch' in obj) {
-        _.merge(modules, plasma.loadNpm(obj, options));
+        obj.nomatch.forEach(function(item) {
+          if (path.extname(item) === '.js' || path.extname(item) === '.coffee') {
+            _.merge(modules, plasma.loadNpm(obj, options));
+          }
+        })
       }
 
       if ('src' in obj) {

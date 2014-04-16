@@ -1,6 +1,6 @@
 {
   "name": "plasma",
-  "version": "0.2.1",
+  "version": "0.2.3",
   "description": "Build a context object to pass to templates. Plasma can load data from a flexible range of configuration and file formats, including JSON/YAML data files defined with minimatch/glob patterns.",
   "repository": {
     "type": "git",
