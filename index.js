@@ -5,6 +5,7 @@
  * Licensed under the MIT license.
  */
 
+const path = require('path');
 const file = require('fs-utils');
 const expander = require('expander');
 const replace = require('frep');
@@ -26,6 +27,69 @@ var renameProp = function(str, filepath) {
   };
   return replace.strWithObj(str, replacements);
 };
+
+/**
+ * Load npm modules from a normalized config
+ * @param   {Object}  mod
+ * @param   {Object}  params
+ * @return  {Object}
+ */
+
+plasma.loadNpm = function(modules, params) {
+  var names = modules.nomatch;
+  var config = params.config || {};
+
+  var resolved = {}, unresolved = [];
+
+  names.forEach(function(name) {
+    try {
+      _.merge(resolved, require(name)(config));
+    } catch (err) {
+      try {
+        _.merge(resolved, require(name));
+      } catch(err) {
+        unresolved = unresolved.concat(name);
+      }
+    }
+  });
+
+  return {
+    resolved: resolved,
+    unresolved: unresolved,
+  };
+};
+
+/**
+ * Load local modules from a normalized config
+ * @param   {Object}  filepath
+ * @param   {Object}  params
+ * @return  {Object}
+ */
+
+plasma.loadLocal = function(modules, params) {
+  var filepaths = modules.src;
+  var config = params.config || {};
+
+  var resolved = {}, unresolved = [];
+
+  filepaths.forEach(function(filepath) {
+    try {
+      _.merge(resolved, require(path.resolve(filepath))(config));
+    } catch (err) {
+      try {
+        _.merge(resolved, require(path.resolve(filepath)));
+      } catch (err) {
+        unresolved = unresolved.concat(filepath);
+      }
+    }
+  });
+
+  return {
+    resolved: resolved,
+    unresolved: unresolved,
+  };
+};
+
 
 var namespaceFiles = function(configObject, options) {
   var config = _.cloneDeep(configObject);
@@ -69,8 +133,8 @@ var namespaceFiles = function(configObject, options) {
         delete obj.src;
       });
       delete hash.name;
-      hash[content.name] = content.src;
       hash.__normalized__ = true;
+      hash[content.name] = content.src;
       hash = expandHash(hash);
     });
     data = data.concat(hash);
@@ -93,8 +157,15 @@ var namespaceFiles = function(configObject, options) {
  * @api public
  */
 
-plasma.normalizeString = function(patterns, options) {
-  return plasma.normalize({src: [patterns]}, options);
+plasma.normalizeString = function(pattern, options) {
+  if (path.extname(pattern) === '.js' || !file.ext(pattern)) {
+    var files = file.expand(pattern, options);
+    if (files.length > 0) {
+      return plasma.normalize({__fn__: true, __normalized__: true, src: files}, options);
+    }
+    return plasma.normalize({__fn__: true, __normalized__: true, nomatch: [pattern]}, options);
+  }
+  return plasma.normalize({src: [pattern]}, options);
 };
 
 /**
@@ -109,10 +180,10 @@ plasma.normalizeString = function(patterns, options) {
 
 plasma.normalizeArray = function (config, options) {
   var arr = _.cloneDeep(config);
-  var data = [], strings = [], objects = [], arrays = [];
   options = options || {};
 
-  var files = [];
+  var data = [], strings = [], objects = [], arrays = [], functions = [], files = [];
+
   arr.forEach(function (value) {
     if (type(value) === 'object') {
       objects = objects.concat(value);
@@ -121,25 +192,39 @@ plasma.normalizeArray = function (config, options) {
       if (patterns.length < 1) {
         strings = strings.concat(value);
       } else {
-        files = files.concat(patterns);
+        if (path.extname(patterns[0]) === '.js') {
+          functions = functions.concat({
+            __normalized__: true,
+            __fn__: true,
+            src: patterns
+          });
+        } else {
+          files = files.concat(patterns);
+        }
       }
     } else {
       arrays.push(value);
     }
   });
 
-  if (arrays.length > 0) {
-    arrays.forEach(function(arr) {
-      data = data.concat(plasma.normalize(arr, options));
+  if (functions.length > 0) {
+    functions.forEach(function(fn) {
+      data = data.concat(fn);
     });
-  }
-
-  if (strings.length > 0) {
-    data = data.concat({__normalized__: true, nomatch: strings});
   }
 
   if (files.length > 0) {
     data = data.concat({__normalized__: true, src: files});
+  }
+
+  if (strings.length > 0) {
+    data = data.concat({__normalized__: true, __fn__: true, nomatch: strings});
+  }
+
+  if (arrays.length > 0) {
+    arrays.forEach(function(arr) {
+      data = data.concat(plasma.normalize(arr, options));
+    });
   }
 
   if (objects.length > 0) {
@@ -173,7 +258,7 @@ plasma.normalizeObject = function (obj, options) {
     obj.__namespace__ = obj.__namespace__ || true;
   }
 
-  // `processConfig` function
+  // Allow a function to customizie how the config is processe.
   if ('processConfig' in obj && type(obj.processConfig) === 'function') {
     obj = plasma.normalize(obj.processConfig(obj));
   }
@@ -194,7 +279,35 @@ plasma.normalizeObject = function (obj, options) {
     delete obj.prefixBase;
   }
 
-  if (obj.__namespace__) {
+  // If the user has defined 'functions',
+  // then normalize the object so that we
+  // can try to require the modules later
+  if ('functions' in obj || 'functions' in options) {
+    obj.__fn__ = true;
+    obj.__normalized__ = true;
+    delete obj.functions;
+    delete options.functions;
+  }
+
+  if ('__fn__' in obj) {
+    if ('src' in obj) {
+      // if ther is a src property, try to expand
+      // it to see if the modules are local.
+      var files = file.expand(obj.src, options);
+      if (files.length > 0) {
+        obj.src = files;
+      } else {
+        // if globule returns an empty array
+        // then let's put the original src
+        // patterns into nomatch so we can try
+        // to require them from npm later.
+        obj.nomatch = obj.src;
+        delete obj.src;
+      }
+    }
+    data = data.concat(obj);
+
+  } else if (obj.__namespace__) {
     obj.src = arrayify(obj.src);
 
     // Prop strings
@@ -211,41 +324,49 @@ plasma.normalizeObject = function (obj, options) {
     } else {
       var files = file.expand(obj.src, options);
 
-      // If `expand: false` is set, don't load the data defined in src,
-      // just rename the `src` key to the value defined in `name`.
-      if (options.expand === false) {
-        obj[obj.name] = obj.src;
-
-        // Now, delete name and src so this object isn't evaluated again.
-        delete obj.name;
-        delete obj.src;
-
-        obj = _.extend(obj, {__normalized__: true});
-        data = data.concat(obj);
-
-      } else if (files.length > 0) {
-
-        // Otherwise, proceed with namespacing. We need to create a structure like this
-        // => {'name': 'fez', src: ['*.json']}
-
-        // If globule returned files, we'll add them to the src array.
-        obj = _.extend(obj, {__normalized__: true, name: obj.name, src: files});
-        data = data.concat(obj);
-
+      if (path.extname(files[0]) === '.js' || options.functions) {
+        data = data.concat(_.extend(obj, {
+          __normalized__: true,
+          __fn__: true,
+          src: files
+        }));
       } else {
 
-        // But if no files are actually found, then, then push the original src value
-        // to the `nomatch` array.
-        obj[obj.name] = obj.src;
-        obj = _.extend(obj, {__normalized__: true, name: obj.name, nomatch: obj.src});
+        // If `expand: false` is set, don't load the data defined in src,
+        // just rename the `src` key to the value defined in `name`.
+        if (options.expand === false) {
+          obj[obj.name] = obj.src;
 
+          // Now, delete name and src so this object isn't evaluated again.
+          delete obj.name;
+          delete obj.src;
 
-        // Since no src files were found, we need to get rid of obj.name and obj.src,
-        // so they aren't evaluated again in the process.
-        delete obj.name;
-        delete obj.src;
+          obj = _.extend(obj, {__normalized__: true});
+          data = data.concat(obj);
 
-        data = data.concat(obj);
+        } else if (files.length > 0) {
+
+          // Otherwise, proceed with namespacing. We need to create a structure like this
+          // => {'name': 'fez', src: ['*.json']}
+
+          // If globule returned files, we'll add them to the src array.
+          obj = _.extend(obj, {__normalized__: true, name: obj.name, src: files});
+          data = data.concat(obj);
+
+        } else {
+
+          // But if no files are actually found, then, then push the original src value
+          // to the `nomatch` array.
+          obj[obj.name] = obj.src;
+          obj = _.extend(obj, {__normalized__: true, name: obj.name, nomatch: obj.src});
+
+          // Since no src files were found, we need to get rid of obj.name and obj.src,
+          // so they aren't evaluated again in the process.
+          delete obj.name;
+          delete obj.src;
+
+          data = data.concat(obj);
+        }
       }
     }
 
@@ -272,13 +393,16 @@ plasma.normalizeObject = function (obj, options) {
       data = data.concat(_.merge({__normalized__: true }, srcObj));
 
     } else {
-      // If we actually get files back from globule, add
-      // the files array to the src property and extend the
-      // object with missing values from the original config.
-      srcObj = _.defaults({src: srcfiles}, obj);
-      data = data.concat(_.merge({__normalized__: true }, srcObj));
+      // If we actually get files back from globule, first check to see if they
+      // might be node modules, if not, add the files array to the src property
+      // and extend the object with missing values from the original config.
+      if (path.extname(obj.src) === '.js') {
+        return plasma.normalize({__fn__: true, __normalized__: true, src: srcfiles}, options);
+      } else {
+        srcObj = _.defaults({src: srcfiles}, obj);
+        data = data.concat(_.merge({__normalized__: true }, srcObj));
+      }
     }
-
 
   } else {
     // If we missed any scenarios, just return the object as-is
@@ -334,13 +458,12 @@ plasma.load = function(config, options) {
   options = options || {};
   config = _.cloneDeep(config);
   var orig = config;
-  var nomatch = [], data = {}, name = {};
+  var nomatch = [], data = {}, name = {}, modules = {};
 
   // First, normalize config values
   config = plasma.normalize(config, options);
 
   config.forEach(function (obj) {
-
     if ('dothash' in obj) {
       options.dothash = obj.dothash;
       delete obj.dothash;
@@ -356,54 +479,63 @@ plasma.load = function(config, options) {
       throw new Error('  [plasma]: config should be normalized by this point, something has gone awry.');
 
     // Everything looks good, proceed...
-    } else {
+    } else if ('__fn__' in obj) {
 
+      if ('nomatch' in obj) {
+        _.merge(modules, plasma.loadNpm(obj, options));
+      }
+
+      if ('src' in obj) {
+        _.merge(modules, plasma.loadLocal(obj, options));
+      }
+
+    } else if ((!obj.name && !obj.src) || (obj.expand && 'src' in obj)) {
       // If neither a name, nor a src key exist it's probably just an object of data,
       // so merge it into the context. Similarly, if `expand: false` was defined,
       // then we want to leave the src value as-is.
-      if ((!obj.name && !obj.src) || ((obj.expand && obj.expand !== false) && 'src' in obj)) {
-        _.merge(data, obj);
+      _.merge(data, obj);
 
-      // Otherwise, continue with expansion.
-      } else {
-        var meta = {}, hash = {}, hashCache = {};
-        // `src` should be an array of files by this point.
-        _.forEach(obj.src, function (filepath) {
-          if (file.exists(filepath)) {
-            if ('dothash' in options && 'name' in obj) {
-              _.merge(hashCache, file.readDataSync(filepath));
-            } else if ('name' in obj && 'src' in obj) {
-              name[obj.name] = file.readDataSync(filepath);
-              _.merge(meta, name);
+    // Otherwise, continue with expansion.
+    } else {
+      var meta = {}, hash = {}, hashCache = {};
+      // src should be an array of files by this point.
 
-              if (!options.retainKeys) {
-                delete obj.name;
-              }
+      _.forEach(obj.src, function (filepath) {
+        if (file.exists(filepath)) {
+          if ('dothash' in options && 'name' in obj) {
+            _.merge(hashCache, file.readDataSync(filepath));
+          } else if ('name' in obj && 'src' in obj) {
+            name[obj.name] = file.readDataSync(filepath);
+            _.merge(meta, name);
 
-            } else if (!obj.name && 'src' in obj) {
-              var srcData = file.readDataSync(filepath);
-              _.merge(meta, srcData);
+            if (!options.retainKeys) {
+              delete obj.name;
             }
-          } else {
-            nomatch = nomatch.concat(filepath);
+
+          } else if (!obj.name && 'src' in obj) {
+            var srcData = file.readDataSync(filepath);
+            _.merge(meta, srcData);
           }
-        });
-
-        // Now that we're out of the loop, merge the hashCash
-        // object into the meta object.
-        if ('dothash' in options && 'name' in obj) {
-          hash[obj.name] = hashCache;
-          _.merge(meta, expandHash(hash) || {});
-          delete obj.dothash;
-          delete obj.name;
+        } else {
+          nomatch = nomatch.concat(filepath);
         }
+      });
 
-        if (!options.retainKeys) {
-          delete obj.expand;
-          delete obj.src;
-        }
-        _.merge(data, obj, meta || {});
+      // Now that we're out of the loop, merge the hashCash
+      // object into the meta object.
+      if ('dothash' in options && 'name' in obj) {
+        hash[obj.name] = hashCache;
+        _.merge(meta, expandHash(hash) || {});
+        delete obj.dothash;
+        delete obj.name;
       }
+
+      if (!options.retainKeys) {
+        delete obj.expand;
+        delete obj.src;
+      }
+
+      _.merge(data, obj, meta || {});
     }
 
     // If dothash:true is still in the options, that means an
@@ -420,6 +552,7 @@ plasma.load = function(config, options) {
     nomatch = nomatch.concat(data.nomatch);
     delete data.__normalized__;
     delete data.__namespace__;
+    delete data.__fn__;
     delete data.nomatch;
     delete data.expand;
     delete data.src;
@@ -433,7 +566,8 @@ plasma.load = function(config, options) {
   return {
     orig: orig,
     nomatch: nomatch,
-    data: data || {}
+    data: data || {},
+    modules: modules
   };
 };
 
