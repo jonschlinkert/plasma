@@ -8,25 +8,21 @@
 const path = require('path');
 const file = require('fs-utils');
 const expander = require('expander');
-const replace = require('frep');
 const expandHash = require('expand-hash');
 const log = require('verbalize');
 const _ = require('lodash');
 
 const utils = require('./lib/utils');
-const plasma = module.exports = {};
+const renameProp = utils.renameProp;
 
 var type = utils.type;
 var arrayify = utils.arrayify;
 var detectPattern = utils.detectPattern;
 
-var renameProp = function(str, filepath) {
-  var replacements = {
-    ':basename': file.name(filepath),
-    ':dirname': file.lastDir(filepath)
-  };
-  return replace.strWithObj(str, replacements);
-};
+
+function plasma (config) {
+  return plasma.load(config).data;
+}
 
 /**
  * Load npm modules from a normalized config
@@ -36,6 +32,8 @@ var renameProp = function(str, filepath) {
  */
 
 plasma.loadNpm = function(modules, options) {
+  options = options || {};
+
   var names = modules.nomatch;
   var config = options.config || {};
 
@@ -54,8 +52,10 @@ plasma.loadNpm = function(modules, options) {
   });
 
   return {
+    __normalized__: true,
     resolved: resolved || {},
-    unresolved: unresolved || []
+    unresolved: unresolved || [],
+    nomatch: unresolved || []
   };
 };
 
@@ -68,10 +68,9 @@ plasma.loadNpm = function(modules, options) {
 
 plasma.loadLocal = function(modules, options) {
   options = options || {};
-
   var filepaths = modules.src;
-  var config = options.config || {};
 
+  var config = options.config || {};
   var resolved = {}, unresolved = [];
 
   filepaths.forEach(function(filepath) {
@@ -88,8 +87,10 @@ plasma.loadLocal = function(modules, options) {
   });
 
   return {
+    __normalized__: true,
     resolved: resolved || {},
-    unresolved: unresolved || []
+    unresolved: unresolved || [],
+    nomatch: unresolved || []
   };
 };
 
@@ -165,8 +166,9 @@ plasma.normalizeString = function(pattern, options) {
     var files = file.expand(pattern, options);
     if (files.length > 0) {
       return plasma.normalize({__fn__: true, __normalized__: true, src: files}, options);
+    } else {
+      return plasma.loadNpm({__fn__: true, __normalized__: true, nomatch: [pattern]}, options);
     }
-    return plasma.normalize({__fn__: true, __normalized__: true, nomatch: [pattern]}, options);
   }
   return plasma.normalize({src: [pattern]}, options);
 };
@@ -221,7 +223,9 @@ plasma.normalizeArray = function (config, options) {
   }
 
   if (strings.length > 0) {
-    data = data.concat({__normalized__: true, nomatch: strings});
+    strings.forEach(function(str) {
+      data = data.concat(plasma.normalize(str, options));
+    });
   }
 
   if (arrays.length > 0) {
@@ -251,7 +255,7 @@ plasma.normalizeObject = function (obj, options) {
   options = options || {};
   options.expand = options.expand || true;
 
-  var data = [];
+  var data = [], files;
 
   // If both `src` and `name` exist, then we need to namespace
   // the data loaded from `src`, unless `__namespace__: false`
@@ -296,7 +300,7 @@ plasma.normalizeObject = function (obj, options) {
     if ('src' in obj) {
       // if ther is a src property, try to expand
       // it to see if the modules are local.
-      var files = file.expand(obj.src, options);
+      files = file.expand(obj.src, options);
       if (files.length > 0) {
         obj.src = files;
       } else {
@@ -325,7 +329,7 @@ plasma.normalizeObject = function (obj, options) {
       data = data.concat(namespaceFiles(obj, options));
 
     } else {
-      var files = file.expand(obj.src, options);
+      files = file.expand(obj.src, options);
 
       if (path.extname(files[0]) === '.js' || options.functions) {
         data = data.concat(_.extend(obj, {
@@ -480,20 +484,26 @@ plasma.load = function(config, options) {
       nomatch = nomatch.concat(obj.nomatch);
     }
 
+
     // If the object has not been normalize, we could run `plasma.normalize` here,
     // but something is probably amiss, so throw an error instead.
     if (!obj.__normalized__) {
       throw new Error('  [plasma]: config should be normalized by this point, something has gone awry.');
+    }
 
     // Everything looks good, proceed...
-    } else if ('__fn__' in obj) {
 
+    if ('resolved' in obj) {
+      _.merge(modules, obj);
+    }
+
+    if ('__fn__' in obj) {
       if ('nomatch' in obj) {
         obj.nomatch.forEach(function(item) {
           if (path.extname(item) === '.js' || path.extname(item) === '.coffee') {
             _.merge(modules, plasma.loadNpm(obj, options));
           }
-        })
+        });
       }
 
       if ('src' in obj) {
@@ -556,6 +566,7 @@ plasma.load = function(config, options) {
       data = expandHash(data);
       delete data.dothash;
     }
+
   });
 
   // Clean up temporary props from normalized objects
@@ -602,3 +613,6 @@ plasma.process = function(obj, options) {
 
   return result;
 };
+
+
+module.exports = plasma;

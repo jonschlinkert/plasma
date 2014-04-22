@@ -18,7 +18,7 @@ describe('globule:', function () {
       var actual = plasma.load(config, options).data;
 
       var expected = {a: 'This value is from a.json'};
-      expect(actual).to.eql(expected);
+      expect(actual).to.deep.eql(expected);
       done();
     });
   });

@@ -214,33 +214,35 @@ describe('when plasma.load() is used on an array of objects:', function () {
       done();
     });
   });
+
+
+  /**
+   * Complete object
+   */
+
+  describe('complete object:', function () {
+    describe('when the src property does not contain a valid file path', function () {
+      it('should return the original object and filepath', function (done) {
+        var fixture = {src: ['a']};
+        var actual = plasma.load(fixture);
+
+        var expected = {data: {}, nomatch: ['a'], orig: {src: ['a'] }, modules: {resolved: {}, unresolved: [] } };
+        expect(actual).to.deep.equal(expected);
+        done();
+      });
+    });
+
+    describe('when the src property contain VALID glob patterns', function () {
+      it('should expand the glob patterns to filepaths on the src property', function (done) {
+        var fixture = {src: ['test/fixtures/b.json']};
+        var actual = plasma.load(fixture);
+        var expected = {orig: {src: ["test/fixtures/b.json"] }, nomatch: [], data: {ccc: "dddd"}, modules: {resolved: {}, unresolved: [] } };
+        expect(actual).to.deep.equal(expected);
+        done();
+      });
+    });
+  });
 });
 
 
-/**
- * Complete object
- */
-
-describe('complete object', function () {
-  describe('when the src property does not contain a valid file path', function () {
-    it('should return the original object and filepath', function (done) {
-      var fixture = {src: ['a']};
-      var actual = plasma.load(fixture);
-
-      var expected = {data: {}, nomatch: ['a'], orig: {src: ['a'] }, modules: {} };
-      expect(actual).to.deep.equal(expected);
-      done();
-    });
-  });
-
-  describe('when the src property contain VALID glob patterns', function () {
-    it('should expand the glob patterns to filepaths on the src property', function (done) {
-      var fixture = {src: ['test/fixtures/b.json']};
-      var actual = plasma.load(fixture);
-      var expected = {orig: {src: ["test/fixtures/b.json"] }, nomatch: [], data: {ccc: "dddd"}, modules: {} };
-      expect(actual).to.deep.equal(expected);
-      done();
-    });
-  });
-});
 
