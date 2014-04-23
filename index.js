@@ -20,9 +20,13 @@ var arrayify = utils.arrayify;
 var detectPattern = utils.detectPattern;
 
 
-function plasma (config) {
-  return plasma.load(config).data;
+function plasma (config, options) {
+  return plasma.load(config, options).data;
 }
+
+plasma.fn = function(config, options) {
+  return plasma.load(config, options).modules.resolved;
+};
 
 /**
  * Load npm modules from a normalized config
