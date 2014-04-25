@@ -5,19 +5,18 @@
  * Licensed under the MIT license.
  */
 
-const path = require('path');
-const file = require('fs-utils');
-const expander = require('expander');
-const expandHash = require('expand-hash');
-const log = require('verbalize');
-const _ = require('lodash');
+const path   = require('path'),
+  file       = require('fs-utils'),
+  expander   = require('expander'),
+  expandHash = require('expand-hash'),
+  log        = require('verbalize'),
+  _          = require('lodash');
 
-const utils = require('./lib/utils');
-const renameProp = utils.renameProp;
-
-var type = utils.type;
-var arrayify = utils.arrayify;
-var detectPattern = utils.detectPattern;
+const utils     = require('./lib/utils'),
+  renameProp    = utils.renameProp,
+  type          = utils.type,
+  arrayify      = utils.arrayify,
+  detectPattern = utils.detectPattern
 
 
 function plasma (config, options) {
@@ -38,10 +37,10 @@ plasma.fn = function(config, options) {
 plasma.loadNpm = function(modules, options) {
   options = options || {};
 
-  var names = modules.nomatch;
-  var config = options.config || {};
-
-  var resolved = {}, unresolved = [];
+  var names    = modules.nomatch,
+    config     = options.config || {},
+    resolved   = {},
+    unresolved = [];
 
   names.forEach(function(name) {
     try {
@@ -57,9 +56,9 @@ plasma.loadNpm = function(modules, options) {
 
   return {
     __normalized__: true,
-    resolved: resolved || {},
-    unresolved: unresolved || [],
-    nomatch: unresolved || []
+    resolved      : resolved   || {},
+    unresolved    : unresolved || [],
+    nomatch       : unresolved || []
   };
 };
 
@@ -72,10 +71,11 @@ plasma.loadNpm = function(modules, options) {
 
 plasma.loadLocal = function(modules, options) {
   options = options || {};
-  var filepaths = modules.src;
 
-  var config = options.config || {};
-  var resolved = {}, unresolved = [];
+  var filepaths = modules.src,
+    config      = options.config || {},
+    resolved    = {},
+    unresolved  = [];
 
   filepaths.forEach(function(filepath) {
     filepath = path.resolve(filepath);
@@ -92,9 +92,9 @@ plasma.loadLocal = function(modules, options) {
 
   return {
     __normalized__: true,
-    resolved: resolved || {},
-    unresolved: unresolved || [],
-    nomatch: unresolved || []
+    resolved      : resolved   || {},
+    unresolved    : unresolved || [],
+    nomatch       : unresolved || []
   };
 };
 
@@ -136,7 +136,7 @@ var namespaceFiles = function(configObject, options) {
       obj.src.map(function(filepath) {
         content.name = renameProp(name, filepath);
         delete obj.name;
-        content.src = file.readDataSync(filepath);
+        content.src = file.readDataSync(filepath, options);
 
         delete obj.src;
       });
@@ -191,7 +191,12 @@ plasma.normalizeArray = function (config, options) {
   var arr = _.cloneDeep(config);
   options = options || {};
 
-  var data = [], strings = [], objects = [], arrays = [], functions = [], files = [];
+  var data    = [],
+    functions = [],
+    strings   = [],
+    objects   = [],
+    arrays    = [],
+    files     = [];
 
   arr.forEach(function (value) {
     if (type(value) === 'object') {
@@ -259,7 +264,8 @@ plasma.normalizeObject = function (obj, options) {
   options = options || {};
   options.expand = options.expand || true;
 
-  var data = [], files;
+  var data = [],
+    files;
 
   // If both `src` and `name` exist, then we need to namespace
   // the data loaded from `src`, unless `__namespace__: false`
@@ -465,11 +471,14 @@ plasma.normalize = function(value, options) {
  * @return  {[type]}           [description]
  */
 
-plasma.load = function(config, options) {
+plasma.load = function(obj, options) {
   options = options || {};
-  config = _.cloneDeep(config);
-  var orig = config;
-  var nomatch = [], data = {}, name = {}, modules = {};
+  config = _.cloneDeep(obj);
+  var orig   = config,
+    nomatch  = [],
+    data     = {},
+    name     = {},
+    modules  = {};
 
   if(options.cwd) {
     options.prefixBase = true;
@@ -528,9 +537,9 @@ plasma.load = function(config, options) {
       _.forEach(obj.src, function (filepath) {
         if (file.exists(filepath)) {
           if ('dothash' in options && 'name' in obj) {
-            _.merge(hashCache, file.readDataSync(filepath));
+            _.merge(hashCache, file.readDataSync(filepath, options));
           } else if ('name' in obj && 'src' in obj) {
-            name[obj.name] = file.readDataSync(filepath);
+            name[obj.name] = file.readDataSync(filepath, options);
             _.merge(meta, name);
 
             if (!options.retainKeys) {
@@ -538,7 +547,7 @@ plasma.load = function(config, options) {
             }
 
           } else if (!obj.name && 'src' in obj) {
-            var srcData = file.readDataSync(filepath);
+            var srcData = file.readDataSync(filepath, options);
             _.merge(meta, srcData);
           }
         } else {
