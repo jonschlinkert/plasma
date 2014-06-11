@@ -19,13 +19,87 @@ const utils     = require('./lib/utils'),
   detectPattern = utils.detectPattern
 
 
+var namespaceFiles = function(configObject, options) {
+  var config = _.cloneDeep(configObject);
+  options = options || {};
+  var data = [];
+
+  var namespace = config.namespace;
+  var src = config.src;
+  delete config.namespace;
+  delete src.namespace;
+
+  var files = file.expand(src, options);
+  var len = files.length;
+
+  if (len === 0) {
+    data = data.concat({
+      namespace: namespace,
+      nomatch: src
+    });
+  } else {
+    for (var j = 0; j < len; j++) {
+      var filepath = files[j];
+      var newname = renameProp(namespace, filepath);
+      data = data.concat({
+        __normalized__: true,
+        namespace: newname,
+        src: [filepath]
+      });
+    }
+  }
+
+  if (config.hasOwnProperty('dothash')) {
+    var hash = {}, content = {};
+    delete config.dothash;
+    data.forEach(function(obj) {
+      obj.src.map(function(filepath) {
+        content.namespace = renameProp(namespace, filepath);
+        delete obj.namespace;
+        content.src = file.readDataSync(filepath, options);
+
+        delete obj.src;
+      });
+      delete hash.namespace;
+      hash.__normalized__ = true;
+      hash[content.namespace] = content.src;
+      hash = expandHash(hash);
+    });
+    data = data.concat(hash);
+  }
+
+  return data.map(function(obj) {
+    return _.defaults(obj, config);
+  });
+};
+
+
+/**
+ * ## .plasma(config, options)
+ *
+ * @method  plasma
+ * @param   {Object} `config`
+ * @param   {Object} `options`
+ * @return  {Object}
+ */
+
 function plasma (config, options) {
   return plasma.load(config, options).data;
 }
 
+
+/**
+ * Return an array of `require`able modules. Proxy for `.loadNpm` and `.loadLocal`.
+ *
+ * @param   {Object} `config`
+ * @param   {Object} `options`
+ * @return  {Function}
+ */
+
 plasma.fn = function(config, options) {
   return plasma.load(config, options).modules.resolved;
 };
+
 
 /**
  * Load npm modules from a normalized config
@@ -62,10 +136,11 @@ plasma.loadNpm = function(modules, options) {
   };
 };
 
+
 /**
  * Load local modules from a normalized config
- * @param   {Object}  filepath
- * @param   {Object}  params
+ * @param   {Object}  `filepath`
+ * @param   {Object}  `params`
  * @return  {Object}
  */
 
@@ -99,69 +174,13 @@ plasma.loadLocal = function(modules, options) {
 };
 
 
-var namespaceFiles = function(configObject, options) {
-  var config = _.cloneDeep(configObject);
-  options = options || {};
-  var data = [];
-
-  var name = config.name;
-  var src = config.src;
-  delete config.name;
-  delete src.name;
-
-  var files = file.expand(src, options);
-  var len = files.length;
-
-  if (len === 0) {
-    data = data.concat({
-      name: name,
-      nomatch: src
-    });
-  } else {
-    for (var j = 0; j < len; j++) {
-      var filepath = files[j];
-      var newname = renameProp(name, filepath);
-      data = data.concat({
-        __normalized__: true,
-        name: newname,
-        src: [filepath]
-      });
-    }
-  }
-
-  if ('dothash' in config) {
-    var hash = {}, content = {};
-    delete config.dothash;
-    data.forEach(function(obj) {
-      obj.src.map(function(filepath) {
-        content.name = renameProp(name, filepath);
-        delete obj.name;
-        content.src = file.readDataSync(filepath, options);
-
-        delete obj.src;
-      });
-      delete hash.name;
-      hash.__normalized__ = true;
-      hash[content.name] = content.src;
-      hash = expandHash(hash);
-    });
-    data = data.concat(hash);
-  }
-
-  return data.map(function(obj) {
-    return _.defaults(obj, config);
-  });
-};
-
-
 /**
  * Convert a string to an object with `expand` and `src` properties
  * Also adds the `__normalized__` heuristic, so that augmented
  * properties can be unset later.
  *
- * @param   {String}  str  The string to convert
+ * @param   {String}  `str`  The string to convert
  * @return  {Object}
- *
  * @api public
  */
 
@@ -181,9 +200,8 @@ plasma.normalizeString = function(pattern, options) {
  * Normalize an array of strings to an array of objects,
  * each with `expand` and `src` properties
  *
- * @param   {Array}  arr  Array of strings
- * @return  {Array}       Array of objects
- *
+ * @param   {Array}  `arr`  Array of strings
+ * @return  {Array}  Array of objects
  * @api public
  */
 
@@ -267,20 +285,20 @@ plasma.normalizeObject = function (obj, options) {
   var data = [],
     files;
 
-  // If both `src` and `name` exist, then we need to namespace
+  // If both `src` and `namespace` exist, then we need to namespace
   // the data loaded from `src`, unless `__namespace__: false`
   // was defined earlier or by the user.
 
-  if (obj.src && obj.name) {
+  if (obj.hasOwnProperty('src') && obj.hasOwnProperty('namespace')) {
     obj.__namespace__ = obj.__namespace__ || true;
   }
 
   // Allow a function to customizie how the config is processe.
-  if ('processConfig' in obj && type(obj.processConfig) === 'function') {
+  if (obj.hasOwnProperty('processConfig') && type(obj.processConfig) === 'function') {
     obj = plasma.normalize(obj.processConfig(obj));
   }
 
-  if ('expand' in obj) {
+  if (obj.hasOwnProperty('expand')) {
     options.expand = obj.expand;
     delete obj.expand;
   }
@@ -299,26 +317,27 @@ plasma.normalizeObject = function (obj, options) {
   // If the user has defined 'functions',
   // then normalize the object so that we
   // can try to require the modules later
-  if ('functions' in obj || 'functions' in options) {
+  if (obj.hasOwnProperty('functions') || options.hasOwnProperty('functions')) {
     obj.__fn__ = true;
     obj.__normalized__ = true;
     delete obj.functions;
     delete options.functions;
   }
 
-  if ('__fn__' in obj) {
-    if ('src' in obj) {
+  if (obj.hasOwnProperty('__fn__')) {
+    if (obj.hasOwnProperty('src')) {
       // if ther is a src property, try to expand
       // it to see if the modules are local.
       files = file.expand(obj.src, options);
       if (files.length > 0) {
         obj.src = files;
       } else {
+        obj.nomatch = [];
         // if globule returns an empty array
         // then let's put the original src
         // patterns into nomatch so we can try
         // to require them from npm later.
-        obj.nomatch = obj.src;
+        obj.nomatch = obj.nomatch.concat(obj.src);
         delete obj.src;
       }
     }
@@ -329,13 +348,13 @@ plasma.normalizeObject = function (obj, options) {
 
     // Prop strings
     //
-    // If obj.name looks like a prop string, try to
+    // If obj.namespace looks like a prop string, try to
     // match it to a method on the path module, then use the
     // method to generate the name of the object for each file.
     //
-    //   {'name': ':basename', src: ['a/*.json', 'b/*.json']}
+    //   {'namespace': ':basename', src: ['a/*.json', 'b/*.json']}
 
-    if (detectPattern(obj.name)) {
+    if (detectPattern(obj.namespace)) {
       data = data.concat(namespaceFiles(obj, options));
 
     } else {
@@ -350,12 +369,13 @@ plasma.normalizeObject = function (obj, options) {
       } else {
 
         // If `expand: false` is set, don't load the data defined in src,
-        // just rename the `src` key to the value defined in `name`.
+        // just rename the `src` key to the value defined in `namespace`.
         if (options.expand === false) {
-          obj[obj.name] = obj.src;
+          console.log(obj.src)
+          obj[obj.namespace] = obj.src;
 
           // Now, delete name and src so this object isn't evaluated again.
-          delete obj.name;
+          delete obj.namespace;
           delete obj.src;
 
           obj = _.extend(obj, {__normalized__: true});
@@ -364,22 +384,27 @@ plasma.normalizeObject = function (obj, options) {
         } else if (files.length > 0) {
 
           // Otherwise, proceed with namespacing. We need to create a structure like this
-          // => {'name': 'fez', src: ['*.json']}
+          // => {'namespace': 'fez', src: ['*.json']}
 
           // If globule returned files, we'll add them to the src array.
-          obj = _.extend(obj, {__normalized__: true, name: obj.name, src: files});
+          obj = _.extend(obj, {__normalized__: true, namespace: obj.namespace, src: files});
           data = data.concat(obj);
 
         } else {
 
           // But if no files are actually found, then, then push the original src value
           // to the `nomatch` array.
-          obj[obj.name] = obj.src;
-          obj = _.extend(obj, {__normalized__: true, name: obj.name, nomatch: obj.src});
+          obj.nomatch = obj.nomatch || [];
+          obj[obj.namespace] = obj.src;
+          obj = _.extend(obj, {
+            __normalized__: true,
+            namespace: obj.namespace,
+            nomatch: obj.nomatch.concat(obj.src)
+          });
 
-          // Since no src files were found, we need to get rid of obj.name and obj.src,
+          // Since no src files were found, we need to get rid of obj.namespace and obj.src,
           // so they aren't evaluated again in the process.
-          delete obj.name;
+          delete obj.namespace;
           delete obj.src;
 
           data = data.concat(obj);
@@ -387,15 +412,15 @@ plasma.normalizeObject = function (obj, options) {
       }
     }
 
-  } else if (obj.name && !obj.src) {
+  } else if (obj.namespace && !obj.src) {
     // If no `src` is in obj, let's just return the object as-is,
-    // since we can assume that `name` has a different purpose.
+    // since we can assume that `namespace` has a different purpose.
     obj.__normalized__ = true;
     data = data.concat(obj);
 
-  } else if ('src' in obj && !obj.name) {
+  } else if (obj.hasOwnProperty('src') && !obj.namespace) {
 
-    // If a `src` does exists but `name` doesn't, we need to load
+    // If a `src` does exists but `namespace` doesn't, we need to load
     // in the data from src and extend the root object directly.
     var srcfiles = file.expand(obj.src, options);
     var srcObj = {};
@@ -406,7 +431,8 @@ plasma.normalizeObject = function (obj, options) {
       var origSrc = obj.src;
       delete obj.src;
 
-      srcObj = _.defaults({nomatch: origSrc }, obj);
+      obj.nomatch = obj.nomatch || [];
+      srcObj = _.defaults({nomatch: obj.nomatch.concat(origSrc) }, obj);
       data = data.concat(_.merge({__normalized__: true }, srcObj));
 
     } else {
@@ -474,11 +500,11 @@ plasma.normalize = function(value, options) {
 plasma.load = function(obj, options) {
   options = options || {};
   config = _.cloneDeep(obj);
-  var orig   = config,
-    nomatch  = [],
-    data     = {},
-    name     = {},
-    modules  = {};
+  var orig    = config,
+    nomatch   = [],
+    data      = {},
+    namespace = {},
+    modules   = {};
 
   if(options.cwd) {
     options.prefixBase = true;
@@ -488,12 +514,12 @@ plasma.load = function(obj, options) {
   config = plasma.normalize(config, options);
 
   config.forEach(function (obj) {
-    if ('dothash' in obj) {
+    if (obj.hasOwnProperty('dothash')) {
       options.dothash = obj.dothash;
       delete obj.dothash;
     }
 
-    if ('nomatch' in obj) {
+    if (obj.hasOwnProperty('nomatch')) {
       nomatch = nomatch.concat(obj.nomatch);
     }
 
@@ -506,12 +532,12 @@ plasma.load = function(obj, options) {
 
     // Everything looks good, proceed...
 
-    if ('resolved' in obj) {
+    if (obj.hasOwnProperty('resolved')) {
       _.merge(modules, obj);
     }
 
-    if ('__fn__' in obj) {
-      if ('nomatch' in obj) {
+    if (obj.hasOwnProperty('__fn__')) {
+      if (obj.hasOwnProperty('nomatch')) {
         obj.nomatch.forEach(function(item) {
           if (path.extname(item) === '.js' || path.extname(item) === '.coffee') {
             _.merge(modules, plasma.loadNpm(obj, options));
@@ -519,12 +545,12 @@ plasma.load = function(obj, options) {
         });
       }
 
-      if ('src' in obj) {
+      if (obj.hasOwnProperty('src')) {
         _.merge(modules, plasma.loadLocal(obj, options));
       }
 
-    } else if ((!obj.name && !obj.src) || (obj.expand && 'src' in obj)) {
-      // If neither a name, nor a src key exist it's probably just an object of data,
+    } else if ((!obj.namespace && !obj.src) || (obj.expand && obj.hasOwnProperty('src'))) {
+      // If neither a namespace, nor a src key exist it's probably just an object of data,
       // so merge it into the context. Similarly, if `expand: false` was defined,
       // then we want to leave the src value as-is.
       _.merge(data, obj);
@@ -536,17 +562,17 @@ plasma.load = function(obj, options) {
 
       _.forEach(obj.src, function (filepath) {
         if (file.exists(filepath)) {
-          if ('dothash' in options && 'name' in obj) {
+          if (options.hasOwnProperty('dothash') && obj.hasOwnProperty('namespace')) {
             _.merge(hashCache, file.readDataSync(filepath, options));
-          } else if ('name' in obj && 'src' in obj) {
-            name[obj.name] = file.readDataSync(filepath, options);
-            _.merge(meta, name);
+          } else if (obj.hasOwnProperty('namespace') && obj.hasOwnProperty('src')) {
+            namespace[obj.namespace] = file.readDataSync(filepath, options);
+            _.merge(meta, namespace);
 
             if (!options.retainKeys) {
-              delete obj.name;
+              delete obj.namespace;
             }
 
-          } else if (!obj.name && 'src' in obj) {
+          } else if (!obj.namespace && obj.hasOwnProperty('src')) {
             var srcData = file.readDataSync(filepath, options);
             _.merge(meta, srcData);
           }
@@ -557,11 +583,11 @@ plasma.load = function(obj, options) {
 
       // Now that we're out of the loop, merge the hashCash
       // object into the meta object.
-      if ('dothash' in options && 'name' in obj) {
-        hash[obj.name] = hashCache;
+      if (options.hasOwnProperty('dothash') && obj.hasOwnProperty('namespace')) {
+        hash[obj.namespace] = hashCache;
         _.merge(meta, expandHash(hash) || {});
         delete obj.dothash;
-        delete obj.name;
+        delete obj.namespace;
       }
 
       if (!options.retainKeys) {
@@ -574,8 +600,8 @@ plasma.load = function(obj, options) {
 
     // If dothash:true is still in the options, that means an
     // object's keys should be expanded, instead of the value
-    // of `name`.
-    if ('dothash' in options) {
+    // of `namespace`.
+    if (options.hasOwnProperty('dothash')) {
       data = expandHash(data);
       delete data.dothash;
     }
@@ -583,7 +609,7 @@ plasma.load = function(obj, options) {
   });
 
   // Clean up temporary props from normalized objects
-  if ('__normalized__' in data) {
+  if (data.hasOwnProperty('__normalized__')) {
     nomatch = nomatch.concat(data.nomatch);
     delete data.__normalized__;
     delete data.__namespace__;
@@ -621,7 +647,7 @@ plasma.load = function(obj, options) {
 plasma.process = function(obj, options) {
   var result = {};
 
-  obj = plasma.load(obj, options || {}).data;
+  obj = plasma(obj, options || {});
   result = expander.process(obj, obj, options || {});
 
   return result;

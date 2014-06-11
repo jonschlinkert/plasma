@@ -14,13 +14,10 @@ Plasma's conventions are based on the following assumptions:
 
 1. When a string is passed directly, _it is most likely a file path_
 1. When an array is passed directly, _it is most likely an array of file paths_
-1. When an object is passed, it may contain file paths, **but Plasma will not try to read them** _unless one of the following conditions is met_:
-
-   * when a `src`
-
+1. When an object is passed, plasma will try to read filepaths on any `src` properties that exist on the object
 
 ## normalizeString
-If a string is passed to any of the "primary" `plasma` methods (e.g. `normalize()`, `load()`, `expand()`, and `process()`), it will be normalized to a Plasma object. So this:
+If a string is passed to any of the `plasma` methods (`normalize()`, `load()`, `process()`), it will be normalized to a Plasma object. So this:
 
 ```js
 plasma.normalizeString('foo/*.json');

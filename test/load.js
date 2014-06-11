@@ -91,7 +91,7 @@ describe('plasma.load()', function () {
       it('should return an object named after the `name` property', function (done) {
         var fixture = [
           {one: 'two'},
-          {name: 'pkg', src: ['test/fixtures/a.yml']}
+          {namespace: 'pkg', src: ['test/fixtures/a.yml']}
         ];
 
         var expected = {pkg: {aaa: 'bbbb'}, one: 'two'};
@@ -101,7 +101,7 @@ describe('plasma.load()', function () {
 
       it('should return an object with the name from the `name` property', function (done) {
         var fixture = [
-          {name: 'pkg', src: ['test/fixtures/b.json'], one: 'two'}
+          {namespace: 'pkg', src: ['test/fixtures/b.json'], one: 'two'}
         ];
 
         var expected = {pkg: {ccc: 'dddd'}, one: 'two'};
@@ -111,7 +111,7 @@ describe('plasma.load()', function () {
 
       it('should return an object with the name from the `name` property', function (done) {
         var fixture = [
-          {name: 'pkg', src: 'test/fixtures/b.json', one: 'two'}
+          {namespace: 'pkg', src: 'test/fixtures/b.json', one: 'two'}
         ];
 
         var expected = {pkg: {ccc: 'dddd'}, one: 'two'};
@@ -137,7 +137,7 @@ describe('plasma.load()', function () {
       var fixture = [
         'test/fixtures/c.json',
         {quux: '*.json'},
-        {name: 'pkg', src: ['test/fixtures/b.json'], one: 'two'}
+        {namespace: 'pkg', src: ['test/fixtures/b.json'], one: 'two'}
       ];
       var actual = plasma.load(fixture).data;
 
@@ -173,7 +173,7 @@ describe('plasma.load()', function () {
 describe('when plasma.load() is used on an array of objects:', function () {
   describe('when an object has a src property:', function () {
     it('should assume the src property defined file paths and try to expand them', function (done) {
-      var fixture = {name: 'foo', src: ['test/fixtures/b.json']};
+      var fixture = {namespace: 'foo', src: ['test/fixtures/b.json']};
       var actual = plasma.load(fixture).data;
 
       var expected = {foo: {ccc: 'dddd'}};
@@ -184,7 +184,7 @@ describe('when plasma.load() is used on an array of objects:', function () {
 
   describe('when an object has `expand:false`:', function () {
     it('should not try to expand filepaths', function (done) {
-      var fixture = [{expand: false, name: 'foo', src: ['*.json']}];
+      var fixture = [{expand: false, namespace: 'foo', src: ['*.json']}];
       var actual = plasma.load(fixture).data;
 
       var expected = {foo: ['*.json']};
@@ -195,10 +195,10 @@ describe('when plasma.load() is used on an array of objects:', function () {
 
   describe('when an object has `name` but not `src`:', function () {
     it('should do nothing an return the object as-is.', function (done) {
-      var fixture = {name: 'foo', files: ['*.json']};
+      var fixture = {namespace: 'foo', files: ['*.json']};
       var actual = plasma.load(fixture).data;
 
-      var expected = {name: 'foo', files: ['*.json']};
+      var expected = {namespace: 'foo', files: ['*.json']};
       expect(actual).to.deep.equal(expected);
       done();
     });

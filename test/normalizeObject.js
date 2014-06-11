@@ -36,10 +36,10 @@ describe('normalizeObject():', function () {
 
     describe('is passed an object:', function () {
       it('should return an array of objects, each with `__normalized__` and `src` properties', function (done) {
-        var fixture = { name: 'fez', src: ['*.json', '*.json']};
+        var fixture = { namespace: 'fez', src: ['*.json', '*.json']};
         var actual = plasma.normalizeObject(fixture);
 
-        var expected = [{__normalized__: true, __namespace__: true, name: 'fez', src: ['bower.json', 'package.json']}];
+        var expected = [{__normalized__: true, __namespace__: true, namespace: 'fez', src: ['bower.json', 'package.json']}];
         expect(actual).to.deep.equal(expected);
         done();
       });
@@ -67,10 +67,10 @@ describe('normalizeObject():', function () {
     });
 
     it('should return an array of normalized objects', function (done) {
-      var fixture = { name: 'fez', src: ['*.json', 'foo/*.json']};
+      var fixture = { namespace: 'fez', src: ['*.json', 'foo/*.json']};
       var actual = plasma.normalizeObject(fixture);
 
-      var expected = [{__normalized__: true, __namespace__: true, name: 'fez', src: ['bower.json', 'package.json']}];
+      var expected = [{__normalized__: true, __namespace__: true, namespace: 'fez', src: ['bower.json', 'package.json']}];
       expect(actual).to.deep.equal(expected);
       done();
     });

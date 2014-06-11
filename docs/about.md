@@ -49,22 +49,22 @@ If you've ever done this before, you know that it gets much more complicated. Th
 Or, you can make life easy, and just do:
 
 ```js
-var {%= name %} = require('{%= name %}');
-plasma.load('*.{json,yml}');
+var plasma = require('plasma');
+plasma('*.{json,yml}');
 ```
 
 Need config data merged in? Do this:
 
 ```js
-plasma.load('*.{json,yml}', {foo: 'bar', baz: 'quux'});
+plasma('*.{json,yml}', {foo: 'bar', baz: 'quux'});
 // or this
-plasma.load(['*.{json,yml}', 'something.json'], {foo: 'bar', baz: 'quux'});
+plasma(['*.{json,yml}', 'something.json'], {foo: 'bar', baz: 'quux'});
 ```
 
 Want the data from certain files to be _namespaced_? (e.g. data from `foo.json` gets loaded to an object named `foo`), do this:
 
 ```js
-plasma.load({name: 'foo', src: ['*.{json,yml}', 'something.json']});
+plasma({name: 'foo', src: ['*.{json,yml}', 'something.json']});
 ```
 
 Plasma does a lot more, [jump to the examples](#examples)

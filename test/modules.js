@@ -116,7 +116,7 @@ describe('modules:', function () {
 
   describe('when both modules and data are defined', function () {
     it('should return both', function (done) {
-      var fixture = [{src: ['test/fixtures/fn/*.js']}, {name: 'alert', src: ['test/fixtures/*.yml']}];
+      var fixture = [{src: ['test/fixtures/fn/*.js']}, {namespace: 'alert', src: ['test/fixtures/*.yml']}];
       var actual = plasma.load(fixture, {config: {a: {b: 'c'}}});
 
       var data = actual.data;

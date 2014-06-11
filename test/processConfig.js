@@ -37,32 +37,32 @@ describe('processConfig:', function () {
         // basename of the filepath otherwise return the original object.
         var fixture = {
           src: 'test/fixtures/*.{json,yml}',
-          name: 'no-files',
+          namespace: 'no-files',
           processConfig: function(config) {
             var files = [];
             file.expand(config.src).map(function(filepath) {
-              var obj = {name: file.name(filepath), src: [filepath]};
+              var obj = {namespace: file.name(filepath), src: [filepath]};
               files = files.concat(obj);
             });
             if (files.length > 0) {return files; }
-            return {name: config.name, src: config.src};
+            return {namespace: config.name, src: config.src};
           }
         };
 
         var actual = plasma.normalize(fixture);
 
         var expected = [
-          {__normalized__: true, __namespace__: true, name: 'a', src: ['test/fixtures/a.yml']},
-          {__normalized__: true, __namespace__: true, name: 'b', src: ['test/fixtures/b.json']},
-          {__normalized__: true, __namespace__: true, name: 'c', src: ['test/fixtures/c.json']},
+          {__normalized__: true, __namespace__: true, namespace: 'a', src: ['test/fixtures/a.yml']},
+          {__normalized__: true, __namespace__: true, namespace: 'b', src: ['test/fixtures/b.json']},
+          {__normalized__: true, __namespace__: true, namespace: 'c', src: ['test/fixtures/c.json']},
         ];
         expect(actual).to.deep.equal(expected);
         done();
       });
     });
 
-    describe('when a `process` function is used:', function () {
-      it('should normalize the value returned from the function.', function (done) {
+    describe('when matching files aren\'t found:', function () {
+      it('should return the original src string in `nomatch`.', function (done) {
 
         // if there are files, add each file to its own object, using the
         // basename of the filepath. Otherwise return the original object.
@@ -72,11 +72,11 @@ describe('processConfig:', function () {
           processConfig: function(config) {
             var files = [];
             file.expand(config.src).map(function(filepath) {
-              var obj = {name: file.name(filepath), src: [filepath]};
+              var obj = {namespace: file.name(filepath), src: [filepath]};
               files = files.concat(obj);
             });
             if (files.length > 0) {return files; }
-            return {name: config.name, src: config.src};
+            return {namespace: config.name, src: config.src};
           }
         };
 

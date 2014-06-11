@@ -58,10 +58,10 @@ describe('normalizeArray():', function () {
   // Array of objects
   describe('when an array of objects is passed:', function () {
     it('bar should return an array of objects with `__normalized__` and `src` properties', function (done) {
-      var fixture = [{ name: 'fez', src: ['*.json']}];
+      var fixture = [{ namespace: 'fez', src: ['*.json']}];
       var actual = plasma.normalize(fixture);
 
-      var expected = [{__normalized__: true, __namespace__: true, name: 'fez', src: ['bower.json', 'package.json']}];
+      var expected = [{__normalized__: true, __namespace__: true, namespace: 'fez', src: ['bower.json', 'package.json']}];
       expect(actual).to.deep.equal(expected);
       done();
     });
@@ -91,12 +91,12 @@ describe('normalizeArray():', function () {
     });
 
     it('should return the array of unmodified objects', function (done) {
-      var fixture = [{quux: 'a/*.json'}, {name: 'foo', src: ['test/fixtures/*.json']}];
+      var fixture = [{quux: 'a/*.json'}, {namespace: 'foo', src: ['test/fixtures/*.json']}];
       var actual = plasma.normalize(fixture);
 
       var expected = [
         {__normalized__: true, quux: 'a/*.json'},
-        {__normalized__: true, __namespace__: true, name: 'foo', src: ['test/fixtures/b.json', 'test/fixtures/c.json']}
+        {__normalized__: true, __namespace__: true, namespace: 'foo', src: ['test/fixtures/b.json', 'test/fixtures/c.json']}
       ];
       expect(actual).to.deep.equal(expected);
       done();
