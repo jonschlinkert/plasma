@@ -83,7 +83,7 @@ describe('processConfig:', function () {
         var actual = plasma.normalize(fixture);
 
         var expected = [
-          {__normalized__: true, __namespace__: true, 'no-files': ['foo/bar/*.{json,yml}'], nomatch: ['foo/bar/*.{json,yml}']},
+          {__normalized__: true, __namespace__: true, 'no-files': ['foo/bar/*.{json,yml}'], src: ['foo/bar/*.{json,yml}'], nomatch: ['foo/bar/*.{json,yml}']},
         ];
         expect(actual).to.deep.equal(expected);
         done();

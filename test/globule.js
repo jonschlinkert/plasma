@@ -15,7 +15,7 @@ describe('globule:', function () {
     it('globule should use them, but the options should not be returned in the config object', function (done) {
       var config = 'a.json';
       var options = {cwd: 'test/fixtures/load/string', prefixBase: true};
-      var actual = plasma.load(config, options).data;
+      var actual = plasma(config, options);
 
       var expected = {a: 'This value is from a.json'};
       expect(actual).to.deep.eql(expected);
@@ -26,7 +26,7 @@ describe('globule:', function () {
   describe('when a string of glob patterns is passed to plasma.load()', function () {
     it('should read the files and return an object', function (done) {
       var fixture = 'test/fixtures/*.{json,yml}';
-      var actual = plasma.load(fixture).data;
+      var actual = plasma(fixture);
 
       var expected = {aaa: "bbbb", ccc: "dddd", eee: "ffff"};
       expect(actual).to.deep.equal(expected);
@@ -37,7 +37,7 @@ describe('globule:', function () {
   describe('when an array of glob patterns is passed to plasma.load()', function () {
     it('should read the files and return an object', function (done) {
       var fixture = ['test/fixtures/*.{json,yml}'];
-      var actual = plasma.load(fixture).data;
+      var actual = plasma(fixture);
 
       var expected = {aaa: 'bbbb', ccc: 'dddd', eee: 'ffff'};
       expect(actual).to.deep.equal(expected);
@@ -48,9 +48,9 @@ describe('globule:', function () {
   describe('when an object is passed to plasma.load()', function () {
     it('globule should read the files, and plasma.load() should return an object', function (done) {
       var fixture = {prefixBase: true, cwd: 'test/fixtures', src: '*.{json,yml}'};
-      var actual = plasma.load(fixture).data;
+      var actual = plasma(fixture);
 
-      var expected = {aaa: 'bbbb', ccc: 'dddd', eee: 'ffff'};
+      var expected = {aaa: 'bbbb', ccc: 'dddd', cwd: 'test/fixtures', eee: 'ffff'};
       expect(actual).to.deep.equal(expected);
       done();
     });

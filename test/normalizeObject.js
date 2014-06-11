@@ -52,7 +52,7 @@ describe('normalizeObject():', function () {
       var fixture = {src: ['foo/*.json'], foo: 'foo', bar: 'bar', baz: 'baz'};
       var actual = plasma.normalizeObject(fixture);
 
-      var expected = [{__normalized__: true, nomatch: ['foo/*.json'], foo: 'foo', bar: 'bar', baz: 'baz'}];
+      var expected = [{__normalized__: true, src: ['foo/*.json'], nomatch: ['foo/*.json'], foo: 'foo', bar: 'bar', baz: 'baz'}];
       expect(actual).to.deep.equal(expected);
       done();
     });
@@ -61,7 +61,7 @@ describe('normalizeObject():', function () {
       var fixture = {src: ['foo/*.json']};
       var actual = plasma.normalizeObject(fixture);
 
-      var expected = [{__normalized__: true, nomatch: ['foo/*.json']}];
+      var expected = [{__normalized__: true, src: ['foo/*.json'], nomatch: ['foo/*.json']}];
       expect(actual).to.deep.equal(expected);
       done();
     });

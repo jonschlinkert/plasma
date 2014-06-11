@@ -305,8 +305,6 @@ plasma.normalizeObject = function (obj, options) {
 
   if (obj.cwd) {
     options.cwd = obj.cwd;
-    delete obj.srcBase;
-    delete obj.cwd;
   }
 
   if (obj.prefixBase) {
@@ -338,7 +336,6 @@ plasma.normalizeObject = function (obj, options) {
         // patterns into nomatch so we can try
         // to require them from npm later.
         obj.nomatch = obj.nomatch.concat(obj.src);
-        delete obj.src;
       }
     }
     data = data.concat(obj);
@@ -375,8 +372,6 @@ plasma.normalizeObject = function (obj, options) {
 
           // Now, delete name and src so this object isn't evaluated again.
           delete obj.namespace;
-          delete obj.src;
-
           obj = _.extend(obj, {__normalized__: true});
           data = data.concat(obj);
 
@@ -404,8 +399,6 @@ plasma.normalizeObject = function (obj, options) {
           // Since no src files were found, we need to get rid of obj.namespace and obj.src,
           // so they aren't evaluated again in the process.
           delete obj.namespace;
-          delete obj.src;
-
           data = data.concat(obj);
         }
       }
@@ -428,7 +421,6 @@ plasma.normalizeObject = function (obj, options) {
       // If we don't get any files back from globule,
       // push the original src value into `nomatch`
       var origSrc = obj.src;
-      delete obj.src;
 
       obj.nomatch = obj.nomatch || [];
       srcObj = _.defaults({nomatch: obj.nomatch.concat(origSrc) }, obj);
@@ -588,7 +580,6 @@ plasma.load = function(obj, options) {
 
       if (!options.retainKeys) {
         delete obj.expand;
-        delete obj.src;
       }
 
       _.merge(data, obj, meta || {});
