@@ -26,6 +26,7 @@ var namespaceFiles = function(configObject, options) {
 
   var namespace = config.namespace;
   var src = config.src;
+
   delete config.namespace;
   delete src.namespace;
 
@@ -34,7 +35,7 @@ var namespaceFiles = function(configObject, options) {
 
   if (len === 0) {
     data = data.concat({
-      namespace: namespace,
+      __normalized__: true,
       nomatch: src
     });
   } else {
@@ -57,7 +58,6 @@ var namespaceFiles = function(configObject, options) {
         content.namespace = renameProp(namespace, filepath);
         delete obj.namespace;
         content.src = file.readDataSync(filepath, options);
-
         delete obj.src;
       });
       delete hash.namespace;
@@ -371,7 +371,6 @@ plasma.normalizeObject = function (obj, options) {
         // If `expand: false` is set, don't load the data defined in src,
         // just rename the `src` key to the value defined in `namespace`.
         if (options.expand === false) {
-          console.log(obj.src)
           obj[obj.namespace] = obj.src;
 
           // Now, delete name and src so this object isn't evaluated again.
@@ -475,7 +474,6 @@ plasma.normalize = function(value, options) {
   options = options || {};
   var config = _.cloneDeep(value);
   var data = [];
-
   log.verbose.inform('normalizing');
 
   if (type(config) === 'string') {
@@ -485,7 +483,6 @@ plasma.normalize = function(value, options) {
   } if (type(config) === 'object') {
     data = data.concat(plasma.normalizeObject(config, options));
   }
-
   return data;
 };
 
@@ -512,7 +509,6 @@ plasma.load = function(obj, options) {
 
   // First, normalize config values
   config = plasma.normalize(config, options);
-
   config.forEach(function (obj) {
     if (obj.hasOwnProperty('dothash')) {
       options.dothash = obj.dothash;
