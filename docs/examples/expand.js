@@ -3,7 +3,7 @@ var config = [
   {
     hash: true,
     expand: true,
-    name: ':basename',
+    namespace: ':basename',
     src: [
       'test/fixtures/a.yml',
       'test/fixtures/b.json',

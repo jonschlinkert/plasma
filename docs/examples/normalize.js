@@ -16,7 +16,7 @@ const _ = require('lodash');
 //   {src: ['*.json'], cwd: 'test/fixtures/pkg', prefixBase: true},
 //   {src: ['*.json'], cwd: 'test/fixtures/a', expand: false},
 //   'test/fixtures/*.yml',
-//   {src: ['test/fixtures/a/*.json'], name: 'f', expand: false},
+//   {src: ['test/fixtures/a/*.json'], namespace: 'f', expand: false},
 //   'f'
 // ];
 // file.writeJSONSync('tmp/normalized2.json', plasma.normalize(config2));
@@ -25,12 +25,12 @@ const _ = require('lodash');
 // var config = [
 //   ['a', 'b', 'c'],
 //   ['test/fixtures/*.json', 'a', 'b', 'c'],
-//   ['test/fixtures/*.json', {name: 'a', src: ['test/fixtures/pkg/*.json']}],
-//   ['test/fixtures/*.json', {name: 'b', src: ['*.json'], cwd: 'test/fixtures/pkg', prefixBase: true}],
-//   ['test/fixtures/*.json', {name: 'c', src: ['*.json'], cwd: 'test/fixtures/a', expand: false}],
-//   ['test/fixtures/*.json', 'test/fixtures/*.yml', {name: 'd', src: ['test/fixtures/a/*.json']}],
-//   ['test/fixtures/*.json', 'test/fixtures/*.yml', {src: ['test/fixtures/a/*.json'], name: 'e'}],
-//   ['test/fixtures/*.json', 'test/fixtures/*.yml', 'foo/*.json', {src: ['test/fixtures/a/*.json'], name: 'f', expand: false}]
+//   ['test/fixtures/*.json', {namespace: 'a', src: ['test/fixtures/pkg/*.json']}],
+//   ['test/fixtures/*.json', {namespace: 'b', src: ['*.json'], cwd: 'test/fixtures/pkg', prefixBase: true}],
+//   ['test/fixtures/*.json', {namespace: 'c', src: ['*.json'], cwd: 'test/fixtures/a', expand: false}],
+//   ['test/fixtures/*.json', 'test/fixtures/*.yml', {namespace: 'd', src: ['test/fixtures/a/*.json']}],
+//   ['test/fixtures/*.json', 'test/fixtures/*.yml', {src: ['test/fixtures/a/*.json'], namespace: 'e'}],
+//   ['test/fixtures/*.json', 'test/fixtures/*.yml', 'foo/*.json', {src: ['test/fixtures/a/*.json'], namespace: 'f', expand: false}]
 // ];
 
 
@@ -39,11 +39,11 @@ file.writeJSONSync('tmp/normalized.json', plasma.normalize([
     '*.json',
     {src: '*.json'},
     {src: ['*.json', '**/*.yml'] },
-    {name: 'a', src: ['*.json'], b: 'c'},
+    {namespace: 'a', src: ['*.json'], b: 'c'},
     '*.yml'
   ]
 ));
-// file.writeJSONSync('tmp/normalized-array.json', plasma.normalizeArray(['test/fixtures/*.json', 'test/fixtures/*.yml', {src: ['test/fixtures/a/*.json'], name: 'f'}]));
+// file.writeJSONSync('tmp/normalized-array.json', plasma.normalizeArray(['test/fixtures/*.json', 'test/fixtures/*.yml', {src: ['test/fixtures/a/*.json'], namespace: 'f'}]));
 
 
 

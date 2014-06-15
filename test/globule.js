@@ -1,12 +1,13 @@
-/**
+/*!
  * plasma <https://github.com/jonschlinkert/plasma>
  *
  * Copyright (c) 2014 Jon Schlinkert, contributors.
  * Licensed under the MIT license.
  */
+'use strict';
 
-const expect = require('chai').expect;
-const plasma = require('../');
+var expect = require('chai').expect;
+var plasma = require('../');
 
 
 // Ensure that globule is getting passed options

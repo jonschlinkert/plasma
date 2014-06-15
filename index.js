@@ -606,14 +606,9 @@ plasma.load = function(obj, options) {
     delete data.src;
   }
 
-  nomatch = _.unique(nomatch);
-  if (type(nomatch[0]) === 'undefined') {
-    nomatch = [];
-  }
-
   return {
     orig: orig,
-    nomatch: nomatch,
+    nomatch: _.unique(nomatch).filter(Boolean),
     data: data || {},
     modules: {
       resolved: modules.resolved || {},

@@ -98,7 +98,7 @@ plasma(['*.{json,yml}', 'something.json'], {foo: 'bar', baz: 'quux'});
 Want the data from certain files to be _namespaced_? (e.g. data from `foo.json` gets loaded to an object named `foo`), do this:
 
 ```js
-plasma({name: 'foo', src: ['*.{json,yml}', 'something.json']});
+plasma({namespace: 'foo', src: ['*.{json,yml}', 'something.json']});
 ```
 
 Plasma does a lot more, [jump to the examples](#examples)
@@ -122,12 +122,12 @@ will be normalized to:
 Of if an object is passed, like:
 
 ```js
-{name: 'foo', src: ['*.json'], z: 'x'}
+{namespace: 'foo', src: ['*.json'], z: 'x'}
 ```
 It will be normalized to:
 
 ```js
-[{__normalized__: true, name: 'foo', src: ['bower.json', 'package.json'], z: 'x'}]
+[{__normalized__: true, namespace: 'foo', src: ['bower.json', 'package.json'], z: 'x'}]
 ```
 
 This is really a private method, but it's exposed to help with debugging and in case you need to modify how the data is normalized before it's loaded.
@@ -160,8 +160,8 @@ You may pass a string, object or array to either `plasma.normalize()` or `plasma
 ['*.json', {src: ['*.json'], cwd: 'c', expand: false }];
 ['*.json', {src: ['c/*.json'], expand: false }];
 ['*.json', '*.yml', {src: ['c/*.json']}];
-['*.json', '*.yml', {src: ['c/*.json'], name: 'f'}];
-['*.json', '*.yml', {src: ['c/*.json'], name: 'f', expand: false }];
+['*.json', '*.yml', {src: ['c/*.json'], namespace: 'f'}];
+['*.json', '*.yml', {src: ['c/*.json'], namespace: 'f', expand: false }];
 
 // Objects
 {a: 'b', b: 'c', d: 'd'};
@@ -176,65 +176,65 @@ You may pass a string, object or array to either `plasma.normalize()` or `plasma
 {src: ['c/*.json'], b: 'c', expand: false };
 
 // Named objects
-{name: 'a', b: 'c' };
-{name: 'a', b: 'c', {d: 'e'} };
-{name: 'a', b: 'c', {d: 'e', name: 'f'} };
-{name: 'a', b: 'c', {d: 'e', name: 'f', src: ['*.json']} };
-{name: 'a', b: 'c', {d: 'e'}, f: ['g', 'h', 'i'] };
-{name: 'a', src: 'c/*.json' };
-{name: 'a', src: '*.json', cwd: 'c' };
-{name: 'a', src: '*.json', cwd: 'c', prefixBase: true };
-{name: 'a', src: ['c/*.json'] };
-{name: 'a', src: ['c/*.json'], b: 'c' };
-{name: 'a', src: ['c/*.json', 'd/*.json'], b: 'c' };
-{name: 'a', src: ['c/*.json'] };
-{name: 'a', src: ['c/*.json'], expand: false };
+{namespace: 'a', b: 'c' };
+{namespace: 'a', b: 'c', {d: 'e'} };
+{namespace: 'a', b: 'c', {d: 'e', namespace: 'f'} };
+{namespace: 'a', b: 'c', {d: 'e', namespace: 'f', src: ['*.json']} };
+{namespace: 'a', b: 'c', {d: 'e'}, f: ['g', 'h', 'i'] };
+{namespace: 'a', src: 'c/*.json' };
+{namespace: 'a', src: '*.json', cwd: 'c' };
+{namespace: 'a', src: '*.json', cwd: 'c', prefixBase: true };
+{namespace: 'a', src: ['c/*.json'] };
+{namespace: 'a', src: ['c/*.json'], b: 'c' };
+{namespace: 'a', src: ['c/*.json', 'd/*.json'], b: 'c' };
+{namespace: 'a', src: ['c/*.json'] };
+{namespace: 'a', src: ['c/*.json'], expand: false };
 
 // Array of objects
 [{a: 'b', b: 'c', d: 'd'}];
 [{a: 'b', b: 'c'}, {d: 'd'}];
 [{a: 'b', b: 'c'}, {src: '*.json'}];
-[{a: 'b', b: 'c'}, {src: '*.json', name: 'f'}];
-[{a: 'b', b: 'c'}, {src: '*.json', name: 'f', expand: false }];
-[{a: 'b', b: 'c'}, {src: '*.json', name: 'f'}];
+[{a: 'b', b: 'c'}, {src: '*.json', namespace: 'f'}];
+[{a: 'b', b: 'c'}, {src: '*.json', namespace: 'f', expand: false }];
+[{a: 'b', b: 'c'}, {src: '*.json', namespace: 'f'}];
 
-['*.json', {src: '*.json'}, '*.yml', src: ['*.json', '**/*.yml']},, name: 'a', src: ['*.json'], b: 'c'} ];
+['*.json', {src: '*.json'}, '*.yml', src: ['*.json', '**/*.yml']},, namespace: 'a', src: ['*.json'], b: 'c'} ];
 
 // Prop strings
-{name: ':basename', a: 'b' };
-{name: ':basename' };
-{name: ':basename', src: 'a/b/c/*.json' };
-{name: ':dirname', src: 'a/b/c/*.json' };
+{namespace: ':basename', a: 'b' };
+{namespace: ':basename' };
+{namespace: ':basename', src: 'a/b/c/*.json' };
+{namespace: ':dirname', src: 'a/b/c/*.json' };
 
 
 // dot hashes
-{name: 'a', c: 'd' };
-{name: 'a', c: { d: 'e'} };
-{name: 'a.b', c: 'd' };
-{name: 'a.b', c: { d: 'e'} };
-{name: 'a.b.c', c: { d: 'e'} };
+{namespace: 'a', c: 'd' };
+{namespace: 'a', c: { d: 'e'} };
+{namespace: 'a.b', c: 'd' };
+{namespace: 'a.b', c: { d: 'e'} };
+{namespace: 'a.b.c', c: { d: 'e'} };
 
-{name: 'a', {c: ['d', 'e']} };
-{name: 'a.b', {c: ['d', 'e']} };
-{name: 'a.b.c', {c: ['d', 'e']} };
+{namespace: 'a', {c: ['d', 'e']} };
+{namespace: 'a.b', {c: ['d', 'e']} };
+{namespace: 'a.b.c', {c: ['d', 'e']} };
 
-{name: 'a', src: 'a/b/c/*.json' };
-{name: 'a.b', src: 'a/b/c/*.json' };
-{name: 'a.b.c', src: 'a/b/c/*.json' };
+{namespace: 'a', src: 'a/b/c/*.json' };
+{namespace: 'a.b', src: 'a/b/c/*.json' };
+{namespace: 'a.b.c', src: 'a/b/c/*.json' };
 
-{name: 'a', src: ['a/b/c/*.json'] };
-{name: 'a.b', src: ['a/b/c/*.json'] };
-{name: 'a.b.c', src: ['a/b/c/*.json'] };
+{namespace: 'a', src: ['a/b/c/*.json'] };
+{namespace: 'a.b', src: ['a/b/c/*.json'] };
+{namespace: 'a.b.c', src: ['a/b/c/*.json'] };
 
-{name: 'a', {'b': 'c'} };
-{name: 'a', {'b.c': 'd'} };
-{name: 'a', {'b.c.d': 'e'} };
+{namespace: 'a', {'b': 'c'} };
+{namespace: 'a', {'b.c': 'd'} };
+{namespace: 'a', {'b.c.d': 'e'} };
 
 // Prop strings with dot hashes
-{name: ':dirname.:basename', src: ['i18n/*.json'] };
-{name: ':basename' };
-{name: ':basename', src: 'a/b/c/*.json' };
-{name: ':dirname', src: 'a/b/c/*.json' };
+{namespace: ':dirname.:basename', src: ['i18n/*.json'] };
+{namespace: ':basename' };
+{namespace: ':basename', src: 'a/b/c/*.json' };
+{namespace: ':dirname', src: 'a/b/c/*.json' };
 ```
 
 ### Invalid patterns
@@ -261,4 +261,4 @@ Released under the MIT license
 
 ***
 
-_This file was generated by [verb-cli](https://github.com/assemble/verb-cli) on June 11, 2014._
+_This file was generated by [verb-cli](https://github.com/assemble/verb-cli) on June 15, 2014._

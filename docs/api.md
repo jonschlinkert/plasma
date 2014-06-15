@@ -80,7 +80,7 @@ Example:
 
 ```js
 processConfig: function(obj) {
-  return {name: name, src: src}
+  return {namespace: name, src: src}
 }
 ```js
 

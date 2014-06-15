@@ -9,8 +9,8 @@ var config = [
   ['test/fixtures/*.json', {src: ['*.json'], cwd: 'test/fixtures/pkg', prefixBase: true}],
   ['test/fixtures/*.json', {src: ['*.json'], cwd: 'test/fixtures/a', expand: false}],
   ['test/fixtures/*.json', 'test/fixtures/*.yml', {src: ['test/fixtures/a/*.json']}],
-  ['test/fixtures/*.json', 'test/fixtures/*.yml', {src: ['test/fixtures/a/*.json'], name: 'f'}],
-  ['test/fixtures/*.json', 'test/fixtures/*.yml', {src: ['test/fixtures/a/*.json'], name: 'f', expand: false}]
+  ['test/fixtures/*.json', 'test/fixtures/*.yml', {src: ['test/fixtures/a/*.json'], namespace: 'f'}],
+  ['test/fixtures/*.json', 'test/fixtures/*.yml', {src: ['test/fixtures/a/*.json'], namespace: 'f', expand: false}]
 ];
 
 var config2 = [
@@ -18,7 +18,7 @@ var config2 = [
   {src: ['*.json'], cwd: 'test/fixtures/pkg', prefixBase: true},
   {src: ['*.json'], cwd: 'test/fixtures/a', expand: false},
   'test/fixtures/*.yml',
-  {src: ['test/fixtures/a/*.json'], name: 'f', expand: false}
+  {src: ['test/fixtures/a/*.json'], namespace: 'f', expand: false}
 ];
 
 function mergeConfig(arr) {

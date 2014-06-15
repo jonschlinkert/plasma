@@ -5,7 +5,7 @@ var config = [
   '*.json',
   {src: '*.json'},
   {src: ['*.json', '**/*.yml'] },
-  {name: 'a', src: ['*.json'], b: 'c'},
+  {namespace: 'a', src: ['*.json'], b: 'c'},
   '*.yml'
 ];
 ```

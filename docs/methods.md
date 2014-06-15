@@ -15,12 +15,12 @@ will be normalized to:
 Of if an object is passed, like:
 
 ```js
-{name: 'foo', src: ['*.json'], z: 'x'}
+{namespace: 'foo', src: ['*.json'], z: 'x'}
 ```
 It will be normalized to:
 
 ```js
-[{__normalized__: true, name: 'foo', src: ['bower.json', 'package.json'], z: 'x'}]
+[{__normalized__: true, namespace: 'foo', src: ['bower.json', 'package.json'], z: 'x'}]
 ```
 
 This is really a private method, but it's exposed to help with debugging and in case you need to modify how the data is normalized before it's loaded.

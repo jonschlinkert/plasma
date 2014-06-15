@@ -23,7 +23,7 @@ Given that `buttons.yml` has this data:
   modifier: btn-warning
 ```
 
-Defining `plasma.load({name: 'button', src: 'buttons.yml'})` will result in the following object:
+Defining `plasma.load({namespace: 'button', src: 'buttons.yml'})` will result in the following object:
 
 ```
 {
@@ -77,7 +77,7 @@ Assuming your directory structure looks like this:
   /ta.json
 ```
 
-Defining `plasma.load({name: ':dirname.:basename', src: ['i18n/*.json']});`, would result in:
+Defining `plasma.load({namespace: ':dirname.:basename', src: ['i18n/*.json']});`, would result in:
 
 ```js
 i18n: {
