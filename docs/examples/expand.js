@@ -4,7 +4,7 @@ var config = [
     hash: true,
     expand: true,
     namespace: ':basename',
-    src: [
+    patterns: [
       'test/fixtures/a.yml',
       'test/fixtures/b.json',
       'test/fixtures/c.json'

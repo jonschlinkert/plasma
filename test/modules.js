@@ -13,7 +13,7 @@ const plasma = require('../');
 describe('modules:', function () {
   describe('when modules are defined', function () {
     it('should be able to pass in a config object as a second parameter', function (done) {
-      var fixture = {src: ['test/fixtures/fn/*.js']};
+      var fixture = {patterns: ['test/fixtures/fn/*.js']};
       var actual = plasma.load(fixture, {config: {a: {b: 'c'}}}).modules;
 
       expect(actual.resolved.lowercase('FOO')).to.equal('foo');
@@ -100,9 +100,9 @@ describe('modules:', function () {
     });
 
     describe('as an object:', function () {
-      describe('and glob patterns defined in the src property', function () {
+      describe('and glob patterns defined in the patterns property', function () {
         it('should require them and expose the module\'s properties on the modules object', function (done) {
-          var fixture = {src: ['test/fixtures/fn/*.js']};
+          var fixture = {patterns: ['test/fixtures/fn/*.js']};
           var actual = plasma.load(fixture).modules;
 
           expect(actual.resolved.lowercase('FOO')).to.equal('foo');
@@ -116,7 +116,7 @@ describe('modules:', function () {
 
   describe('when both modules and data are defined', function () {
     it('should return both', function (done) {
-      var fixture = [{src: ['test/fixtures/fn/*.js']}, {namespace: 'alert', src: ['test/fixtures/*.yml']}];
+      var fixture = [{patterns: ['test/fixtures/fn/*.js']}, {namespace: 'alert', patterns: ['test/fixtures/*.yml']}];
       var actual = plasma.load(fixture, {config: {a: {b: 'c'}}});
 
       var data = actual.data;

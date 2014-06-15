@@ -2,13 +2,13 @@
 
 Plasma offers several ways to namespace data, depending on the use case.
 
-* [filename](#file-name): when `src` and `name` are defined, Plasma will namespace data using the [basename](http://nodejs.org/api/path.html#path_path_basename_p_ext) of the file
+* [filename](#file-name): when `patterns` and `name` are defined, Plasma will namespace data using the [basename](http://nodejs.org/api/path.html#path_path_basename_p_ext) of the file
 * [dothash](#dothash): when `dothash: true` is defined, Plasma will recursively expand dothashes into objects. Readme more in the [dothash section](#dothash).
 * [prop strings](#prop-strings): Plasma automatically resolves keys with `:prop` strings into their equivalent file path values.
 
 ### file name
 
-When both `name` and `src` are defined on an object, Plasma will automatically _namespace_ `src` object in a property using the value from the `name` property. For example:
+When both `name` and `patterns` are defined on an object, Plasma will automatically _namespace_ `patterns` object in a property using the value from the `name` property. For example:
 
 Given that `buttons.yml` has this data:
 
@@ -23,7 +23,7 @@ Given that `buttons.yml` has this data:
   modifier: btn-warning
 ```
 
-Defining `plasma.load({namespace: 'button', src: 'buttons.yml'})` will result in the following object:
+Defining `plasma.load({namespace: 'button', patterns: 'buttons.yml'})` will result in the following object:
 
 ```
 {
@@ -44,7 +44,7 @@ Defining `plasma.load({namespace: 'button', src: 'buttons.yml'})` will result in
 }
 ```
 
-Note that both `name` and `src` must be defined for objects to be namespaced automatically.
+Note that both `name` and `patterns` must be defined for objects to be namespaced automatically.
 
 ### dothash
 
@@ -77,7 +77,7 @@ Assuming your directory structure looks like this:
   /ta.json
 ```
 
-Defining `plasma.load({namespace: ':dirname.:basename', src: ['i18n/*.json']});`, would result in:
+Defining `plasma.load({namespace: ':dirname.:basename', patterns: ['i18n/*.json']});`, would result in:
 
 ```js
 i18n: {

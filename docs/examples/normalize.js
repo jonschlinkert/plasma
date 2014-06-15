@@ -11,12 +11,12 @@ const _ = require('lodash');
 
 // var config2 = [
 //   'a', 'b',
-//   {src: ['test/fixtures/pkg/*.json']},
+//   {patterns: ['test/fixtures/pkg/*.json']},
 //   'd',
-//   {src: ['*.json'], cwd: 'test/fixtures/pkg', prefixBase: true},
-//   {src: ['*.json'], cwd: 'test/fixtures/a', expand: false},
+//   {patterns: ['*.json'], cwd: 'test/fixtures/pkg', prefixBase: true},
+//   {patterns: ['*.json'], cwd: 'test/fixtures/a', expand: false},
 //   'test/fixtures/*.yml',
-//   {src: ['test/fixtures/a/*.json'], namespace: 'f', expand: false},
+//   {patterns: ['test/fixtures/a/*.json'], namespace: 'f', expand: false},
 //   'f'
 // ];
 // file.writeJSONSync('tmp/normalized2.json', plasma.normalize(config2));
@@ -25,25 +25,25 @@ const _ = require('lodash');
 // var config = [
 //   ['a', 'b', 'c'],
 //   ['test/fixtures/*.json', 'a', 'b', 'c'],
-//   ['test/fixtures/*.json', {namespace: 'a', src: ['test/fixtures/pkg/*.json']}],
-//   ['test/fixtures/*.json', {namespace: 'b', src: ['*.json'], cwd: 'test/fixtures/pkg', prefixBase: true}],
-//   ['test/fixtures/*.json', {namespace: 'c', src: ['*.json'], cwd: 'test/fixtures/a', expand: false}],
-//   ['test/fixtures/*.json', 'test/fixtures/*.yml', {namespace: 'd', src: ['test/fixtures/a/*.json']}],
-//   ['test/fixtures/*.json', 'test/fixtures/*.yml', {src: ['test/fixtures/a/*.json'], namespace: 'e'}],
-//   ['test/fixtures/*.json', 'test/fixtures/*.yml', 'foo/*.json', {src: ['test/fixtures/a/*.json'], namespace: 'f', expand: false}]
+//   ['test/fixtures/*.json', {namespace: 'a', patterns: ['test/fixtures/pkg/*.json']}],
+//   ['test/fixtures/*.json', {namespace: 'b', patterns: ['*.json'], cwd: 'test/fixtures/pkg', prefixBase: true}],
+//   ['test/fixtures/*.json', {namespace: 'c', patterns: ['*.json'], cwd: 'test/fixtures/a', expand: false}],
+//   ['test/fixtures/*.json', 'test/fixtures/*.yml', {namespace: 'd', patterns: ['test/fixtures/a/*.json']}],
+//   ['test/fixtures/*.json', 'test/fixtures/*.yml', {patterns: ['test/fixtures/a/*.json'], namespace: 'e'}],
+//   ['test/fixtures/*.json', 'test/fixtures/*.yml', 'foo/*.json', {patterns: ['test/fixtures/a/*.json'], namespace: 'f', expand: false}]
 // ];
 
 
 // file.writeJSONSync('tmp/normalized3.json', plasma.normalize(config));
 file.writeJSONSync('tmp/normalized.json', plasma.normalize([
     '*.json',
-    {src: '*.json'},
-    {src: ['*.json', '**/*.yml'] },
-    {namespace: 'a', src: ['*.json'], b: 'c'},
+    {patterns: '*.json'},
+    {patterns: ['*.json', '**/*.yml'] },
+    {namespace: 'a', patterns: ['*.json'], b: 'c'},
     '*.yml'
   ]
 ));
-// file.writeJSONSync('tmp/normalized-array.json', plasma.normalizeArray(['test/fixtures/*.json', 'test/fixtures/*.yml', {src: ['test/fixtures/a/*.json'], namespace: 'f'}]));
+// file.writeJSONSync('tmp/normalized-array.json', plasma.normalizeArray(['test/fixtures/*.json', 'test/fixtures/*.yml', {patterns: ['test/fixtures/a/*.json'], namespace: 'f'}]));
 
 
 

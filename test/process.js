@@ -11,7 +11,7 @@ const plasma = require('../');
 
 describe('when plasma.process() is used on a config object', function () {
   it('should resolve template strings to a configuration value', function (done) {
-    var fixture = [{namespace: 'foo', src: ['test/fixtures/pkg/*.json']}, {bar: '<%= foo %>'}];
+    var fixture = [{namespace: 'foo', patterns: ['test/fixtures/pkg/*.json']}, {bar: '<%= foo %>'}];
     var actual = plasma.process(fixture);
 
     expect(actual).to.have.deep.property('foo.name', 'plasma');
@@ -44,8 +44,8 @@ describe('when a complex mixture of strings, arrays and objects are passed', fun
       'test/fixtures/pkg/*.json',
       {quux: '*.json'},
       'test/fixtures/*.yml',
-      {dothash: true, namespace: ':dirname.:basename', src: ['test/fixtures/i18n_process/*.json', 'test/fixtures/load/**/*.json']},
-      {name: 'pkg', src: ['test/fixtures/pkg/*.json'], one: 'two'},
+      {dothash: true, namespace: ':dirname.:basename', patterns: ['test/fixtures/i18n_process/*.json', 'test/fixtures/load/**/*.json']},
+      {name: 'pkg', patterns: ['test/fixtures/pkg/*.json'], one: 'two'},
       {name: 'overwritten', version: 'infinity'}
     ];
     var actual = plasma.process(fixture);

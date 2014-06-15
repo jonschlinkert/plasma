@@ -18,7 +18,7 @@ const plasma = require('../');
 
 describe('when "dot hash" strings are used', function () {
   it('should return an object with the name from the `name` property', function (done) {
-    var fixture = [{dothash: true, namespace: 'foo.bar.baz', src: ['test/fixtures/*.{json,yml}'], one: {two: 'three'} }];
+    var fixture = [{dothash: true, namespace: 'foo.bar.baz', patterns: ['test/fixtures/*.{json,yml}'], one: {two: 'three'} }];
     var actual = plasma.load(fixture).data;
 
     var expected = {foo: {bar: {baz: {aaa: 'bbbb', ccc: 'dddd', eee: 'ffff'} } }, one: {two: 'three'}};
@@ -46,7 +46,7 @@ describe('when "dot hash" strings are used', function () {
 
 
   it('should return an object with the name from the `name` property', function (done) {
-    var fixture = {dothash: true, namespace: 'foo.bar', src: ['test/fixtures/*.{json,yml}'], one: {two: 'three'}};
+    var fixture = {dothash: true, namespace: 'foo.bar', patterns: ['test/fixtures/*.{json,yml}'], one: {two: 'three'}};
     var actual = plasma.load(fixture).data;
 
     var expected = {foo: {bar: {aaa: 'bbbb', ccc: 'dddd', eee: 'ffff'} }, one: {two: 'three'} };
@@ -56,7 +56,7 @@ describe('when "dot hash" strings are used', function () {
 
   describe('when mixed data is passed in:', function () {
     it('should return an object', function (done) {
-      var fixture = {dothash: true, a: 'b', c: 'd', namespace: 'e.f.g', src: 'test/fixtures/b.json'};
+      var fixture = {dothash: true, a: 'b', c: 'd', namespace: 'e.f.g', patterns: 'test/fixtures/b.json'};
       var actual = plasma.load(fixture).data;
 
       var expected = {a: 'b', c: 'd', e: {f: {g: {ccc: 'dddd'} } } };
@@ -76,7 +76,7 @@ describe('when "dot hash" strings are used', function () {
    */
 
   it('should return an object with the name from the `name` property', function (done) {
-    var fixture = {namespace: ':dirname.:basename', src: ['test/fixtures/i18n/*.json']};
+    var fixture = {namespace: ':dirname.:basename', patterns: ['test/fixtures/i18n/*.json']};
     var actual = plasma.load(fixture).data;
 
     var expectedi18n = {
@@ -107,7 +107,7 @@ describe('when "dot hash" strings are used', function () {
   });
 
   it('should return an object with the name from the `name` property', function (done) {
-    var fixture = {dothash: true, namespace: ':dirname.:basename', src: ['test/fixtures/i18n/*.json']};
+    var fixture = {dothash: true, namespace: ':dirname.:basename', patterns: ['test/fixtures/i18n/*.json']};
     var actual = plasma.load(fixture).data;
 
     var expectedi18n = {

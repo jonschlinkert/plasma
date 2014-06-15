@@ -3,9 +3,9 @@ Converts this:
 ```js
 var config = [
   '*.json',
-  {src: '*.json'},
-  {src: ['*.json', '**/*.yml'] },
-  {namespace: 'a', src: ['*.json'], b: 'c'},
+  {patterns: '*.json'},
+  {patterns: ['*.json', '**/*.yml'] },
+  {namespace: 'a', patterns: ['*.json'], b: 'c'},
   '*.yml'
 ];
 ```
@@ -16,9 +16,9 @@ Into a predictable structure, like this:
 ```js
 [
   {"__normalized__": true, "nomatch": ["*.yml"] },
-  {"__normalized__": true, "src": ["bower.json", "package.json"] },
-  {"__normalized__": true, "src": ["bower.json", "package.json"] },
-  {"__normalized__": true, "src": [
+  {"__normalized__": true, "patterns": ["bower.json", "package.json"] },
+  {"__normalized__": true, "patterns": ["bower.json", "package.json"] },
+  {"__normalized__": true, "patterns": [
       "bower.json",
       "package.json",
       "test/fixtures/a.yml",
@@ -32,7 +32,7 @@ Into a predictable structure, like this:
       "test/fixtures/c/example.yml"
     ]
   },
-  {"__normalized__": true, "__namespace__": true, "name": "a", "src": ["bower.json", "package.json"], "b": "c" }
+  {"__normalized__": true, "__namespace__": true, "name": "a", "patterns": ["bower.json", "package.json"], "b": "c" }
 ]
 ```
 allowing for:

@@ -87,11 +87,11 @@ describe('plasma.load()', function () {
       });
     });
 
-    describe('and one of the objects has a src property, but others do not', function () {
+    describe('and one of the objects has a patterns property, but others do not', function () {
       it('should return an object named after the `name` property', function (done) {
         var fixture = [
           {one: 'two'},
-          {namespace: 'pkg', src: ['test/fixtures/a.yml']}
+          {namespace: 'pkg', patterns: ['test/fixtures/a.yml']}
         ];
 
         var expected = {pkg: {aaa: 'bbbb'}, one: 'two'};
@@ -101,7 +101,7 @@ describe('plasma.load()', function () {
 
       it('should return an object with the name from the `name` property', function (done) {
         var fixture = [
-          {namespace: 'pkg', src: ['test/fixtures/b.json'], one: 'two'}
+          {namespace: 'pkg', patterns: ['test/fixtures/b.json'], one: 'two'}
         ];
 
         var expected = {pkg: {ccc: 'dddd'}, one: 'two'};
@@ -111,7 +111,7 @@ describe('plasma.load()', function () {
 
       it('should return an object with the name from the `name` property', function (done) {
         var fixture = [
-          {namespace: 'pkg', src: 'test/fixtures/b.json', one: 'two'}
+          {namespace: 'pkg', patterns: 'test/fixtures/b.json', one: 'two'}
         ];
 
         var expected = {pkg: {ccc: 'dddd'}, one: 'two'};
@@ -137,7 +137,7 @@ describe('plasma.load()', function () {
       var fixture = [
         'test/fixtures/c.json',
         {quux: '*.json'},
-        {namespace: 'pkg', src: ['test/fixtures/b.json'], one: 'two'}
+        {namespace: 'pkg', patterns: ['test/fixtures/b.json'], one: 'two'}
       ];
       var actual = plasma.load(fixture).data;
 
@@ -153,8 +153,8 @@ describe('plasma.load()', function () {
         'test/fixtures/pkg/*.json',
         {quux: '*.json'},
         'test/fixtures/*.yml',
-        {src: ['test/fixtures/i18n/*.json', 'test/fixtures/load/**/*.json']},
-        {name: 'package', src: ['test/fixtures/pkg/*.json'], one: 'two'},
+        {patterns: ['test/fixtures/i18n/*.json', 'test/fixtures/load/**/*.json']},
+        {name: 'package', patterns: ['test/fixtures/pkg/*.json'], one: 'two'},
         {name: 'overwritten', version: 'infinity'}
       ];
 
@@ -171,9 +171,9 @@ describe('plasma.load()', function () {
 
 
 describe('when plasma.load() is used on an array of objects:', function () {
-  describe('when an object has a src property:', function () {
-    it('should assume the src property defined file paths and try to expand them', function (done) {
-      var fixture = {namespace: 'foo', src: ['test/fixtures/b.json']};
+  describe('when an object has a patterns property:', function () {
+    it('should assume the patterns property defined file paths and try to expand them', function (done) {
+      var fixture = {namespace: 'foo', patterns: ['test/fixtures/b.json']};
       var actual = plasma.load(fixture).data;
 
       var expected = {foo: {ccc: 'dddd'}};
@@ -184,7 +184,7 @@ describe('when plasma.load() is used on an array of objects:', function () {
 
   describe('when an object has `expand:false`:', function () {
     it('should not try to expand filepaths', function (done) {
-      var fixture = [{expand: false, namespace: 'foo', src: ['*.json']}];
+      var fixture = [{expand: false, namespace: 'foo', patterns: ['*.json']}];
       var actual = plasma.load(fixture).data;
 
       var expected = {foo: ['*.json']};
@@ -193,7 +193,7 @@ describe('when plasma.load() is used on an array of objects:', function () {
     });
   });
 
-  describe('when an object has `name` but not `src`:', function () {
+  describe('when an object has `name` but not `patterns`:', function () {
     it('should do nothing an return the object as-is.', function (done) {
       var fixture = {namespace: 'foo', files: ['*.json']};
       var actual = plasma.load(fixture).data;
@@ -204,7 +204,7 @@ describe('when plasma.load() is used on an array of objects:', function () {
     });
   });
 
-  describe('when an object is passed without a src property', function () {
+  describe('when an object is passed without a patterns property', function () {
     it('should be passed through as-is', function (done) {
       var fixture = [{foo: 'foo', bar: 'bar', baz: 'baz'}];
       var actual = plasma.load(fixture).data;
@@ -221,22 +221,22 @@ describe('when plasma.load() is used on an array of objects:', function () {
    */
 
   describe('complete object:', function () {
-    describe('when the src property does not contain a valid file path', function () {
+    describe('when the patterns property does not contain a valid file path', function () {
       it('should return the original object and filepath', function (done) {
-        var fixture = {src: ['a']};
+        var fixture = {patterns: ['a']};
         var actual = plasma.load(fixture);
 
-        var expected = {data: {}, nomatch: ['a'], orig: {src: ['a'] }, modules: {resolved: {}, unresolved: [] } };
+        var expected = {data: {}, nomatch: ['a'], orig: {patterns: ['a'] }, modules: {resolved: {}, unresolved: [] } };
         expect(actual).to.deep.equal(expected);
         done();
       });
     });
 
-    describe('when the src property contain VALID glob patterns', function () {
-      it('should expand the glob patterns to filepaths on the src property', function (done) {
-        var fixture = {src: ['test/fixtures/b.json']};
+    describe('when the patterns property contain VALID glob patterns', function () {
+      it('should expand the glob patterns to filepaths on the patterns property', function (done) {
+        var fixture = {patterns: ['test/fixtures/b.json']};
         var actual = plasma.load(fixture);
-        var expected = {orig: {src: ["test/fixtures/b.json"] }, nomatch: [], data: {ccc: "dddd"}, modules: {resolved: {}, unresolved: [] } };
+        var expected = {orig: {patterns: ["test/fixtures/b.json"] }, nomatch: [], data: {ccc: "dddd"}, modules: {resolved: {}, unresolved: [] } };
         expect(actual).to.deep.equal(expected);
         done();
       });

@@ -14,7 +14,7 @@ Plasma's conventions are based on the following assumptions:
 
 1. When a string is passed directly, _it is most likely a file path_
 1. When an array is passed directly, _it is most likely an array of file paths_
-1. When an object is passed, plasma will try to read filepaths on any `src` properties that exist on the object
+1. When an object is passed, plasma will try to read filepaths on any `patterns` properties that exist on the object
 
 ## normalizeString
 If a string is passed to any of the `plasma` methods (`normalize()`, `load()`, `process()`), it will be normalized to a Plasma object. So this:
@@ -26,9 +26,9 @@ plasma.normalizeString('foo/*.json');
 will be normalized to:
 
 ```js
-{expand: true, src: ['foo/*.json']}
+{expand: true, patterns: ['foo/*.json']}
 ```
-Even if it's not a glob pattern. This is okay, since value in the `src` property will be returned if it doesn't resolve to an actual filepath.
+Even if it's not a glob pattern. This is okay, since value in the `patterns` property will be returned if it doesn't resolve to an actual filepath.
 
 
 ## normalizeArray
@@ -42,8 +42,8 @@ will be normalized to:
 
 ```js
 [
-  {expand: true, src: ['foo/*.json']},
-  {expand: true, src: ['bar/*.json']}
+  {expand: true, patterns: ['foo/*.json']},
+  {expand: true, patterns: ['bar/*.json']}
 ];
 ```
 
@@ -80,7 +80,7 @@ Example:
 
 ```js
 processConfig: function(obj) {
-  return {namespace: name, src: src}
+  return {namespace: name, patterns: patterns}
 }
 ```js
 

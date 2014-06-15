@@ -64,7 +64,7 @@ plasma(['*.{json,yml}', 'something.json'], {foo: 'bar', baz: 'quux'});
 Want the data from certain files to be _namespaced_? (e.g. data from `foo.json` gets loaded to an object named `foo`), do this:
 
 ```js
-plasma({namespace: 'foo', src: ['*.{json,yml}', 'something.json']});
+plasma({namespace: 'foo', patterns: ['*.{json,yml}', 'something.json']});
 ```
 
 Plasma does a lot more, [jump to the examples](#examples)

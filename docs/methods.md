@@ -10,17 +10,17 @@ plasma.normalize(['*.json'])
 will be normalized to:
 
 ```js
-[{__normalized__: true, src: ['bower.json', 'package.json']}]
+[{__normalized__: true, patterns: ['bower.json', 'package.json']}]
 ```
 Of if an object is passed, like:
 
 ```js
-{namespace: 'foo', src: ['*.json'], z: 'x'}
+{namespace: 'foo', patterns: ['*.json'], z: 'x'}
 ```
 It will be normalized to:
 
 ```js
-[{__normalized__: true, namespace: 'foo', src: ['bower.json', 'package.json'], z: 'x'}]
+[{__normalized__: true, namespace: 'foo', patterns: ['bower.json', 'package.json'], z: 'x'}]
 ```
 
 This is really a private method, but it's exposed to help with debugging and in case you need to modify how the data is normalized before it's loaded.

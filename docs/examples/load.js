@@ -5,20 +5,20 @@ const _ = require('lodash');
 var config = [
   ['a', 'b', 'c'],
   ['test/fixtures/*.json', 'a', 'b', 'c'],
-  ['test/fixtures/*.json', {src: ['test/fixtures/pkg/*.json']}],
-  ['test/fixtures/*.json', {src: ['*.json'], cwd: 'test/fixtures/pkg', prefixBase: true}],
-  ['test/fixtures/*.json', {src: ['*.json'], cwd: 'test/fixtures/a', expand: false}],
-  ['test/fixtures/*.json', 'test/fixtures/*.yml', {src: ['test/fixtures/a/*.json']}],
-  ['test/fixtures/*.json', 'test/fixtures/*.yml', {src: ['test/fixtures/a/*.json'], namespace: 'f'}],
-  ['test/fixtures/*.json', 'test/fixtures/*.yml', {src: ['test/fixtures/a/*.json'], namespace: 'f', expand: false}]
+  ['test/fixtures/*.json', {patterns: ['test/fixtures/pkg/*.json']}],
+  ['test/fixtures/*.json', {patterns: ['*.json'], cwd: 'test/fixtures/pkg', prefixBase: true}],
+  ['test/fixtures/*.json', {patterns: ['*.json'], cwd: 'test/fixtures/a', expand: false}],
+  ['test/fixtures/*.json', 'test/fixtures/*.yml', {patterns: ['test/fixtures/a/*.json']}],
+  ['test/fixtures/*.json', 'test/fixtures/*.yml', {patterns: ['test/fixtures/a/*.json'], namespace: 'f'}],
+  ['test/fixtures/*.json', 'test/fixtures/*.yml', {patterns: ['test/fixtures/a/*.json'], namespace: 'f', expand: false}]
 ];
 
 var config2 = [
-  {src: ['test/fixtures/pkg/*.json']},
-  {src: ['*.json'], cwd: 'test/fixtures/pkg', prefixBase: true},
-  {src: ['*.json'], cwd: 'test/fixtures/a', expand: false},
+  {patterns: ['test/fixtures/pkg/*.json']},
+  {patterns: ['*.json'], cwd: 'test/fixtures/pkg', prefixBase: true},
+  {patterns: ['*.json'], cwd: 'test/fixtures/a', expand: false},
   'test/fixtures/*.yml',
-  {src: ['test/fixtures/a/*.json'], namespace: 'f', expand: false}
+  {patterns: ['test/fixtures/a/*.json'], namespace: 'f', expand: false}
 ];
 
 function mergeConfig(arr) {

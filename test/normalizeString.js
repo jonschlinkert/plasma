@@ -11,11 +11,11 @@ const plasma = require('../');
 
 describe('normalizeString()', function () {
   describe('when a string is passed', function () {
-    it('should return an object with `__normalized__` and `src` properties', function (done) {
+    it('should return an object with `__normalized__` and `patterns` properties', function (done) {
       var fixture = '*.json';
       var actual = plasma.normalizeString(fixture);
 
-      var expected = [{__normalized__: true, src: ['bower.json', 'package.json']}];
+      var expected = [{__normalized__: true, patterns: ['bower.json', 'package.json']}];
       expect(actual).to.deep.equal(expected);
       done();
     });
