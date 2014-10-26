@@ -5,18 +5,21 @@
  * Licensed under the MIT license.
  */
 
-const path   = require('path'),
-  file       = require('fs-utils'),
-  expander   = require('expander'),
-  expandHash = require('expand-hash'),
-  log        = require('verbalize'),
-  _          = require('lodash');
+'use strict';
 
-const utils     = require('./lib/utils'),
-  renameProp    = utils.renameProp,
-  type          = utils.type,
-  arrayify      = utils.arrayify,
-  detectPattern = utils.detectPattern
+var path = require('path');
+var file = require('fs-utils');
+var glob = require('globby');
+var expander = require('expander');
+var expandHash = require('expand-hash');
+var log = require('verbalize');
+var _ = require('lodash');
+
+var utils = require('./lib/utils');
+var arrayify = utils.arrayify;
+var detectPattern = utils.detectPattern;
+var renameProp = utils.renameProp;
+var type = utils.type;
 
 
 var namespaceFiles = function(configObject, options) {
@@ -30,7 +33,7 @@ var namespaceFiles = function(configObject, options) {
   delete config.namespace;
   delete src.namespace;
 
-  var files = file.expand(src, options);
+  var files = file.glob.sync(src, options);
   var len = files.length;
 
   if (len === 0) {
@@ -186,7 +189,7 @@ plasma.loadLocal = function(modules, options) {
 
 plasma.normalizeString = function(src, options) {
   if (path.extname(src) === '.js' || path.extname(src) === '.coffee' || !file.ext(src)) {
-    var files = file.expand(src, options);
+    var files = file.glob.sync(src, options);
     if (files.length > 0) {
       return plasma.normalize({__fn__: true, __normalized__: true, patterns: files}, options);
     } else {
@@ -220,7 +223,7 @@ plasma.normalizeArray = function (config, options) {
     if (type(value) === 'object') {
       objects = objects.concat(value);
     } else if (type(value) === 'string') {
-      var src = file.expand(value, options);
+      var src = file.glob.sync(value, options);
       if (src.length < 1) {
         strings = strings.concat(value);
       } else {
@@ -282,8 +285,8 @@ plasma.normalizeObject = function (obj, options) {
   options = options || {};
   options.expand = options.expand || true;
 
-  var data = [],
-    files;
+  var data = [];
+  var files;
 
   // If both `patterns` and `namespace` exist, then we need to namespace
   // the data loaded from `patterns`, unless `__namespace__: false`
@@ -294,7 +297,7 @@ plasma.normalizeObject = function (obj, options) {
   }
 
   // Allow a function to customizie how the config is processe.
-  if (obj.hasOwnProperty('processConfig') && type(obj.processConfig) === 'function') {
+  if (Boolean(obj.processConfig) && typeof obj.processConfig === 'function') {
     obj = plasma.normalize(obj.processConfig(obj));
   }
 
@@ -326,7 +329,7 @@ plasma.normalizeObject = function (obj, options) {
     if (obj.hasOwnProperty('patterns')) {
       // if ther is a patterns property, try to expand
       // it to see if the modules are local.
-      files = file.expand(obj.patterns, options);
+      files = file.glob.sync(obj.patterns, options);
       if (files.length > 0) {
         obj.patterns = files;
       } else {
@@ -355,7 +358,7 @@ plasma.normalizeObject = function (obj, options) {
       data = data.concat(namespaceFiles(obj, options));
 
     } else {
-      files = file.expand(obj.patterns, options);
+      files = file.glob.sync(obj.patterns, options);
 
       if (path.extname(files[0]) === '.js' || options.functions) {
         data = data.concat(_.extend(obj, {
@@ -414,7 +417,7 @@ plasma.normalizeObject = function (obj, options) {
 
     // If a `patterns` does exists but `namespace` doesn't, we need to load
     // in the data from patterns and extend the root object directly.
-    var srcFiles = file.expand(obj.patterns, options);
+    var srcFiles = file.glob.sync(obj.patterns, options);
     var sourceObject = {};
 
     if (srcFiles.length === 0) {
@@ -463,17 +466,17 @@ plasma.normalizeObject = function (obj, options) {
  */
 
 plasma.normalize = function(value, options) {
+  var o = _.cloneDeep(value);
   options = options || {};
-  var config = _.cloneDeep(value);
   var data = [];
   log.verbose.inform('normalizing');
 
-  if (type(config) === 'string') {
-    data = data.concat(plasma.normalizeString(config, options));
-  } if (type(config) === 'array') {
-    data = data.concat(plasma.normalizeArray(config, options));
-  } if (type(config) === 'object') {
-    data = data.concat(plasma.normalizeObject(config, options));
+  if (type(o) === 'string') {
+    data = data.concat(plasma.normalizeString(o, options));
+  } if (type(o) === 'array') {
+    data = data.concat(plasma.normalizeArray(o, options));
+  } if (type(o) === 'object') {
+    data = data.concat(plasma.normalizeObject(o, options));
   }
   return data;
 };
@@ -488,12 +491,12 @@ plasma.normalize = function(value, options) {
 
 plasma.load = function(obj, options) {
   options = options || {};
-  config = _.cloneDeep(obj);
-  var orig    = config,
-    nomatch   = [],
-    data      = {},
-    namespace = {},
-    modules   = {};
+  var config = _.cloneDeep(obj);
+  var orig = config;
+  var nomatch = [];
+  var data = {};
+  var namespace = {};
+  var modules = {};
 
   if(options.cwd) {
     options.prefixBase = true;

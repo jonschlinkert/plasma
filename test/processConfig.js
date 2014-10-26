@@ -5,9 +5,10 @@
  * Licensed under the MIT license.
  */
 
-const file = require('fs-utils');
-const expect = require('chai').expect;
-const plasma = require('../');
+var path = require('path');
+var file = require('fs-utils');
+var expect = require('chai').expect;
+var plasma = require('..');
 
 
 describe('processConfig:', function () {
@@ -18,7 +19,7 @@ describe('processConfig:', function () {
         var fixture = {
           patterns: 'test/fixtures/*.{json,yml}',
           processConfig: function(config) {
-            var files = file.expand(config.patterns);
+            var files = file.glob.sync(config.patterns);
             return {patterns: files};
           }
         };
@@ -40,8 +41,8 @@ describe('processConfig:', function () {
           namespace: 'no-files',
           processConfig: function(config) {
             var files = [];
-            file.expand(config.patterns).map(function(filepath) {
-              var obj = {namespace: file.name(filepath), patterns: [filepath]};
+            file.glob.sync(config.patterns).map(function(fp) {
+              var obj = {namespace: path.basename(fp, path.extname(fp)), patterns: [fp]};
               files = files.concat(obj);
             });
             if (files.length > 0) {return files; }
@@ -71,7 +72,7 @@ describe('processConfig:', function () {
           name: 'no-files',
           processConfig: function(config) {
             var files = [];
-            file.expand(config.patterns).map(function(filepath) {
+            file.glob.sync(config.patterns).map(function(filepath) {
               var obj = {namespace: file.name(filepath), patterns: [filepath]};
               files = files.concat(obj);
             });

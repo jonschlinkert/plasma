@@ -10,20 +10,7 @@ var expect = require('chai').expect;
 var plasma = require('../');
 
 
-// Ensure that globule is getting passed options
-describe('globule:', function () {
-  describe('when options are passed:', function () {
-    it('globule should use them, but the options should not be returned in the config object', function (done) {
-      var config = 'a.json';
-      var options = {cwd: 'test/fixtures/load/string', prefixBase: true};
-      var actual = plasma(config, options);
-
-      var expected = {a: 'This value is from a.json'};
-      expect(actual).to.deep.eql(expected);
-      done();
-    });
-  });
-
+describe('globbing:', function () {
   describe('when a string of glob patterns is passed to plasma.load()', function () {
     it('should read the files and return an object', function (done) {
       var fixture = 'test/fixtures/*.{json,yml}';
@@ -41,17 +28,6 @@ describe('globule:', function () {
       var actual = plasma(fixture);
 
       var expected = {aaa: 'bbbb', ccc: 'dddd', eee: 'ffff'};
-      expect(actual).to.deep.equal(expected);
-      done();
-    });
-  });
-
-  describe('when an object is passed to plasma.load()', function () {
-    it('globule should read the files, and plasma.load() should return an object', function (done) {
-      var fixture = {prefixBase: true, cwd: 'test/fixtures', patterns: '*.{json,yml}'};
-      var actual = plasma(fixture);
-
-      var expected = {aaa: 'bbbb', ccc: 'dddd', cwd: 'test/fixtures', eee: 'ffff'};
       expect(actual).to.deep.equal(expected);
       done();
     });

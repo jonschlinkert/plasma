@@ -5,9 +5,9 @@
  * Licensed under the MIT license.
  */
 
-const expect = require('chai').expect;
-const _ = require('lodash');
-const plasma = require('../');
+var expect = require('chai').expect;
+var _ = require('lodash');
+var plasma = require('../');
 
 
 describe('modules:', function () {

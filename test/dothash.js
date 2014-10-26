@@ -5,8 +5,8 @@
  * Licensed under the MIT license.
  */
 
-const expect = require('chai').expect;
-const plasma = require('../');
+var expect = require('chai').expect;
+var plasma = require('../');
 
 
 
