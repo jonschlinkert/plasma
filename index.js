@@ -9,7 +9,6 @@
 
 var path = require('path');
 var file = require('fs-utils');
-var glob = require('globby');
 var expander = require('expander');
 var expandHash = require('expand-hash');
 var log = require('verbalize');
