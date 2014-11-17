@@ -27,8 +27,7 @@ describe('modules:', function () {
   describe('when npm modules are defined:', function () {
     describe('as a string', function () {
       it('should require them and expose the module\'s properties on the modules object', function (done) {
-        var fixture = 'node-foo';
-        var actual = plasma.load(fixture).modules;
+        var actual = plasma.load('node-foo').modules;
 
         expect(_.keys(actual.resolved).length).to.equal(3);
         expect(actual.resolved).to.include.keys('node_foo_aaa');
@@ -39,8 +38,7 @@ describe('modules:', function () {
 
     describe('as an array', function () {
       it('should require them and expose the module\'s properties on the modules object', function (done) {
-        var fixture = ['node-bar', 'node-baz'];
-        var actual = plasma.load(fixture).modules;
+        var actual = plasma.load(['node-bar', 'node-baz']).modules;
 
         expect(_.keys(actual.resolved).length).to.equal(6);
         expect(actual.resolved).to.include.keys('node_bar_aaa');
@@ -55,8 +53,7 @@ describe('modules:', function () {
   describe('when local modules are defined:', function () {
     describe('as a string', function () {
       it('should require them and expose the module\'s properties on the modules object', function (done) {
-        var fixture = 'test/fixtures/fn/plugin.js';
-        var actual = plasma.load(fixture).modules;
+        var actual = plasma.load('test/fixtures/fn/plugin.js').modules;
 
         expect(_.keys(actual.resolved).length).to.equal(1);
         expect(actual.resolved).to.include.keys('convert');

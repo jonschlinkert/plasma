@@ -20,7 +20,6 @@ var detectPattern = utils.detectPattern;
 var renameProp = utils.renameProp;
 var type = utils.type;
 
-
 var namespaceFiles = function(configObject, options) {
   var config = _.cloneDeep(configObject);
   options = options || {};
