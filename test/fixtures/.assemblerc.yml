@@ -1,3 +1,0 @@
-name: .assemblerc.yml
-src: templates/*.hbs
-dest: _gh_pages
