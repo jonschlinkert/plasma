@@ -47,7 +47,7 @@ describe('plasma.load()', function () {
           return fp.replace(/[\\\/]+/g, '/');
         });
 
-        var actual = plasma.load(['test/fixtures/*.json']);
+        var actual = plasma.load(['test/fixtures/b.json']);
         actual.should.eql({'test/fixtures/b.json': {bbb: 'data from b.json'}});
       });
     });
