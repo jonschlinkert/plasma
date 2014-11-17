@@ -17,6 +17,41 @@ describe('plasma.load()', function () {
     plasma = new Plasma();
   });
 
+  describe('options:', function () {
+    describe('namespace:', function () {
+      it('should namespace data from files by default:', function () {
+        var actual = plasma.load(['test/fixtures/b.json']);
+        actual.should.eql({b: {bbb: 'data from b.json'}});
+      });
+
+      it('should disable namespacing when set with plasma.disable()`:', function () {
+        plasma.disable('namespace');
+        var a = plasma.load(['test/fixtures/a.json']);
+        a.should.eql({aaa: 'data from a.json'});
+      });
+
+      it('should re-enable namespacing with plasma.enable()`:', function () {
+        // disable
+        plasma.disable('namespace');
+        var a = plasma.load(['test/fixtures/a.json']);
+        a.should.eql({aaa: 'data from a.json'});
+
+        // re-enable
+        plasma.enable('namespace');
+        var b = plasma.load(['test/fixtures/b.json']);
+        b.should.eql({aaa: 'data from a.json', b: {bbb: 'data from b.json'}});
+      });
+
+      it('should allow a custom namespace option to be passed:', function () {
+        plasma.option('namespace', function(fp) {
+          return fp.replace(/[\\\/]+/g, '/');
+        });
+
+        var actual = plasma.load(['test/fixtures/*.json']);
+        actual.should.eql({'test/fixtures/b.json': {bbb: 'data from b.json'}});
+      });
+    });
+  });
   describe('string:', function () {
     describe('and when the string is a file path', function () {
       it('should detect the format, YAML or JSON, and load the file:', function () {
@@ -53,17 +88,6 @@ describe('plasma.load()', function () {
 
   describe('array of files:', function () {
     it('should load an array of files:', function () {
-      var actual = plasma.load(['test/fixtures/a.yml', 'test/fixtures/b.json']);
-      actual.should.eql({b: {bbb: 'data from b.json'}});
-    });
-  });
-
-  describe('array of files:', function () {
-    it('should load an array of files:', function () {
-      plasma.option('namespace', function(fp) {
-        return path.basename(fp, path.extname(fp));
-      });
-
       var actual = plasma.load(['test/fixtures/a.yml', 'test/fixtures/b.json']);
       actual.should.eql({b: {bbb: 'data from b.json'}});
     });
