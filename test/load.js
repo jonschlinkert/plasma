@@ -5,244 +5,60 @@
  * Licensed under the MIT license.
  */
 
-var expect = require('chai').expect;
-var plasma = require('../');
+var should = require('should');
+var Plasma = require('..');
+var plasma;
 
+describe('plasma.loadData()', function () {
+  beforeEach(function() {
+    plasma = new Plasma();
+  });
 
-describe('plasma.load()', function () {
-
-  describe('when a string is passed:', function () {
+  describe('string:', function () {
     describe('and when the string is a file path', function () {
-      it('should detect the format, YAML or JSON, read in the file and return an object', function (done) {
-        var fixture = 'test/fixtures/load/string/a.json';
-        var actual = plasma.load(fixture).data;
-
-        expect(actual).to.have.deep.property('a', 'This value is from a.json');
-        done();
+      it('should detect the format, YAML or JSON, and load the file:', function () {
+        plasma.loadData('test/fixtures/a.json').should.have.property('a', {aaa: 'data from a.json'});
+        plasma.loadData('test/fixtures/b.json').should.have.property('b', {bbb: 'data from b.json'});
       });
 
-      it('should detect the format, YAML or JSON, read in the file and return an object', function (done) {
-        var fixture = 'test/fixtures/b.json';
-        var actual = plasma.load(fixture).data;
-
-        var expected = {ccc: "dddd"};
-        expect(actual).to.deep.equal(expected);
-        done();
+      it('should load yaml files:', function () {
+        plasma.loadData('test/fixtures/d.yml').d.should.have.property('name', 'data from d.yml');
       });
 
-      describe('and when the file is YAML', function () {
-        it('should read the file and return an object', function (done) {
-          var fixture = 'test/fixtures/a.yml';
-          var actual = plasma.load(fixture).data;
-
-          var expected = {aaa: "bbbb"};
-          expect(actual).to.deep.equal(expected);
-          done();
-        });
-      });
-    });
-
-    describe('and when the string is glob patterns', function () {
-      it('should read the files and return an object', function (done) {
-        var fixture = 'test/fixtures/*.{json,yml}';
-        var actual = plasma.load(fixture).data;
-
-        var expected = {aaa: "bbbb", ccc: "dddd", eee: "ffff"};
-        expect(actual).to.deep.equal(expected);
-        done();
+      it('should load a glob of files:', function () {
+        var actual = plasma.loadData('test/fixtures/*.{json,yml}');
+        actual.should.have.properties('a', 'b', 'c', 'd');
       });
     });
   });
 
-  describe('when an array is passed:', function () {
+  describe('array of objects:', function () {
+    it('should load data from an array of objects:', function () {
+      var actual = plasma.loadData([
+        {foo: 'foo', bar: 'bar', baz: 'baz'},
+        {bar: 'bar', baz: 'foo', bang: 'boom'}
+      ]);
 
-    describe('and the array has strings that look like file paths', function () {
-      it('should read the files and return an object', function (done) {
-        var fixture = ['test/fixtures/a.yml', 'test/fixtures/b.json'];
-        var actual = plasma.load(fixture).data;
-
-        var expected = {aaa: "bbbb", ccc: "dddd"};
-        expect(actual).to.deep.equal(expected);
-        done();
-      });
-    });
-
-
-   describe('and the array has objects', function () {
-      it('should return an object with unique properties', function (done) {
-        var fixture = [
-          {foo: 'foo', bar: 'bar', baz: 'baz'},
-          {bar: 'bar', baz: 'foo', bang: 'boom'}
-        ];
-        var actual = plasma.load(fixture).data;
-
-        var expected = {
-          bang: 'boom',
-          bar: 'bar',
-          baz: 'foo',
-          foo: 'foo'
-        };
-        expect(actual).to.deep.equal(expected);
-        done();
-      });
-    });
-
-    describe('and one of the objects has a patterns property, but others do not', function () {
-      it('should return an object named after the `name` property', function (done) {
-        var fixture = [
-          {one: 'two'},
-          {namespace: 'pkg', patterns: ['test/fixtures/a.yml']}
-        ];
-
-        var expected = {pkg: {aaa: 'bbbb'}, one: 'two'};
-        expect(plasma.load(fixture).data).to.deep.equal(expected);
-        done();
-      });
-
-      it('should return an object with the name from the `name` property', function (done) {
-        var fixture = [
-          {namespace: 'pkg', patterns: ['test/fixtures/b.json'], one: 'two'}
-        ];
-
-        var expected = {pkg: {ccc: 'dddd'}, one: 'two'};
-        expect(plasma.load(fixture).data).to.deep.equal(expected);
-        done();
-      });
-
-      it('should return an object with the name from the `name` property', function (done) {
-        var fixture = [
-          {namespace: 'pkg', patterns: 'test/fixtures/b.json', one: 'two'}
-        ];
-
-        var expected = {pkg: {ccc: 'dddd'}, one: 'two'};
-        expect(plasma.load(fixture).data).to.deep.equal(expected);
-        done();
+      actual.should.eql({
+        bang: 'boom',
+        bar: 'bar',
+        baz: 'foo',
+        foo: 'foo'
       });
     });
   });
 
-  describe('when an object is passed', function () {
-    it('should return the original object', function (done) {
-      var fixture = {foo: 'foo', bar: 'bar', baz: 'baz'};
-      var actual = plasma.load(fixture).data;
-
-      var expected = {foo: 'foo', bar: 'bar', baz: 'baz'};
-      expect(actual).to.deep.equal(expected);
-      done();
+  describe('array of files:', function () {
+    it.only('should load an array of files:', function () {
+      var actual = plasma.loadData(['test/fixtures/a.yml', 'test/fixtures/b.json']);
+      actual.should.eql({'b': {bbb: 'data from b.json'}});
     });
   });
 
-  describe('when an array with mixed values is passed to plasma.load()', function () {
-    it('should do stuff with each value', function (done) {
-      var fixture = [
-        'test/fixtures/c.json',
-        {quux: '*.json'},
-        {namespace: 'pkg', patterns: ['test/fixtures/b.json'], one: 'two'}
-      ];
-      var actual = plasma.load(fixture).data;
-
-      var expected = {eee: 'ffff', one: 'two', pkg: {ccc: 'dddd'}, quux: '*.json'};
-      expect(actual).to.deep.equal(expected);
-      done();
-    });
-  });
-
-  describe('when a complex mixture of strings, arrays and objects are passed', function () {
-    it('should normalize each format correctly and return an object', function (done) {
-      var fixture = [
-        'test/fixtures/pkg/*.json',
-        {quux: '*.json'},
-        'test/fixtures/*.yml',
-        {patterns: ['test/fixtures/i18n/*.json', 'test/fixtures/load/**/*.json']},
-        {name: 'package', patterns: ['test/fixtures/pkg/*.json'], one: 'two'},
-        {name: 'overwritten', version: 'infinity'}
-      ];
-
-      var actual = plasma.load(fixture).data;
-      expect(actual).to.have.deep.property('name', 'overwritten');
-      expect(actual).to.have.deep.property('aaa', 'bbbb');
-      expect(actual).to.have.deep.property('one', 'two');
-      done();
+  describe('array of files:', function () {
+    it('should load an array of files:', function () {
+      var actual = plasma.loadData(['foo', 'bar', 'baz']);
+      actual.should.eql(['foo', 'bar', 'baz']);
     });
   });
 });
-
-
-
-
-describe('when plasma.load() is used on an array of objects:', function () {
-  describe('when an object has a patterns property:', function () {
-    it('should assume the patterns property defined file paths and try to expand them', function (done) {
-      var fixture = {namespace: 'foo', patterns: ['test/fixtures/b.json']};
-      var actual = plasma.load(fixture).data;
-
-      var expected = {foo: {ccc: 'dddd'}};
-      expect(actual).to.deep.equal(expected);
-      done();
-    });
-  });
-
-  describe('when an object has `expand:false`:', function () {
-    it('should not try to expand filepaths', function (done) {
-      var fixture = [{expand: false, namespace: 'foo', patterns: ['*.json']}];
-      var actual = plasma.load(fixture).data;
-
-      var expected = {foo: ['*.json']};
-      expect(actual).to.deep.equal(expected);
-      done();
-    });
-  });
-
-  describe('when an object has `name` but not `patterns`:', function () {
-    it('should do nothing an return the object as-is.', function (done) {
-      var fixture = {namespace: 'foo', files: ['*.json']};
-      var actual = plasma.load(fixture).data;
-
-      var expected = {namespace: 'foo', files: ['*.json']};
-      expect(actual).to.deep.equal(expected);
-      done();
-    });
-  });
-
-  describe('when an object is passed without a patterns property', function () {
-    it('should be passed through as-is', function (done) {
-      var fixture = [{foo: 'foo', bar: 'bar', baz: 'baz'}];
-      var actual = plasma.load(fixture).data;
-
-      var expected = {foo: 'foo', bar: 'bar', baz: 'baz'};
-      expect(actual).to.deep.equal(expected);
-      done();
-    });
-  });
-
-
-  /**
-   * Complete object
-   */
-
-  describe('complete object:', function () {
-    describe('when the patterns property does not contain a valid file path', function () {
-      it('should return the original object and filepath', function (done) {
-        var fixture = {patterns: ['a']};
-        var actual = plasma.load(fixture);
-
-        var expected = {data: {}, nomatch: ['a'], orig: {patterns: ['a'] }, modules: {resolved: {}, unresolved: [] } };
-        expect(actual).to.deep.equal(expected);
-        done();
-      });
-    });
-
-    describe('when the patterns property contain VALID glob patterns', function () {
-      it('should expand the glob patterns to filepaths on the patterns property', function (done) {
-        var fixture = {patterns: ['test/fixtures/b.json']};
-        var actual = plasma.load(fixture);
-        var expected = {orig: {patterns: ["test/fixtures/b.json"] }, nomatch: [], data: {ccc: "dddd"}, modules: {resolved: {}, unresolved: [] } };
-        expect(actual).to.deep.equal(expected);
-        done();
-      });
-    });
-  });
-});
-
-
-

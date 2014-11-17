@@ -1,11 +1,13 @@
 {
-  "esnext": true,
+  "asi": false,
   "boss": true,
   "curly": true,
   "eqeqeq": true,
   "eqnull": true,
+  "esnext": true,
   "immed": true,
   "latedef": true,
+  "laxcomma": false,
   "newcap": true,
   "noarg": true,
   "node": true,
@@ -13,8 +15,10 @@
   "undef": true,
   "unused": true,
   "globals": {
+    "define": true,
+    "before": true,
+    "after": true,
     "describe": true,
-    "it": true,
-    "xit": true
+    "it": true
   }
 }
