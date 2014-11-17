@@ -1,20 +1,29 @@
+'use strict';
 
-// var plasma = new Plasma({cons: {a0: 'b0'}});
+var path = require('path');
+var Plasma = require('./');
+var plasma = new Plasma({cons: {a0: 'b0'}});
 
-// plasma.enable('namespace');
-// plasma.option('cwd', '.');
-// plasma.option('name', function(fp) {
-//   return path.basename(fp, path.extname(fp));
-// });
+plasma.option('cwd', '.');
+plasma.option('namespace', function(fp) {
+  return path.basename(fp, path.extname(fp));
+});
 
-// plasma
-//   .load('.assemblerc.yml')
-//   .load('foo', {bar: 'baz'})
-//   .load('foo', {bar: 'baz'})
-//   .load('test/fixtures/*.json')
-//   .load(['test/fixtures/*.yml', 'test/fixtures/nested/*.json'])
-//   .load(['test/fixtures/*.yml', 'fofo'])
-//   .load({blah: 'quux'})
-//   .load({fez: 'bang'});
+
+// plasma.load('.assemblerc.yml');
+// plasma.load('foo', {bar: 'baz'});
+// plasma.load('test/fixtures/*.json');
+// plasma.load(['test/fixtures/*.yml', 'test/fixtures/nested/*.json']);
+// plasma.load(['test/fixtures/*.yml', 'fofo']);
+// plasma.load({blah: 'quux'});
+// plasma.load({fez: 'bang'});
 
 // console.log(plasma);
+
+
+plasma.enable('namespace');
+plasma.load(['test/fixtures/*.yml', 'test/fixtures/nested/*.json']);
+plasma.disable('namespace');
+plasma.load(['test/fixtures/*.yml', 'test/fixtures/nested/*.json']);
+
+console.log(plasma);

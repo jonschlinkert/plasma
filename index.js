@@ -14,7 +14,6 @@ var typeOf = require('kind-of');
 var Options = require('option-cache');
 var debug = require('debug')('plasma');
 var relative = require('relative');
-var yaml = require('js-yaml');
 var glob = require('globby');
 var _ = require('lodash');
 
@@ -121,7 +120,7 @@ Plasma.prototype.mergeArray = function(arr) {
 Plasma.prototype.glob = function(patterns, options) {
   debug('glob: %s', patterns);
 
-  var opts = _.extend({cwd: process.cwd()}, this.options, options);
+  var opts = _.merge({cwd: process.cwd()}, this.options, options);
   var files = glob.sync(patterns, opts);
 
   if (!files || files.length === 0) {
@@ -157,10 +156,17 @@ Plasma.prototype.glob = function(patterns, options) {
  * @api private
  */
 
-function name(fp, opts) {
-  if (opts && opts.namespace) {
+function name(fp, options) {
+  var opts = options || {};
+
+  if (typeof opts.namespace === 'function') {
     return opts.namespace(fp, opts);
   }
+
+  if (typeof opts.namespace === false) {
+    return fp;
+  }
+
   var ext = path.extname(fp);
   return path.basename(fp, ext);
 }
@@ -204,6 +210,7 @@ function readData(fp, options) {
       return require(path.resolve(fp));
     case '.yml':
     case '.yaml':
+      var yaml = require('js-yaml');
       return yaml.load(fs.readFileSync(fp, 'utf8'), opts);
     }
   } catch(err) {}
