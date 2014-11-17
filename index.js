@@ -18,6 +18,18 @@ var yaml = require('js-yaml');
 var glob = require('globby');
 var _ = require('lodash');
 
+/**
+ * Create an instance of `Plasma`, optionally passing
+ * an object of `data` to initialize with.
+ *
+ * ```js
+ * var Plasma = require('plasma');
+ * var plasma = new Plasma();
+ * ```
+ *
+ * @param {Object} `data`
+ * @api public
+ */
 
 var Plasma = module.exports = function Plasma(data) {
   Options.call(this);
@@ -26,6 +38,12 @@ var Plasma = module.exports = function Plasma(data) {
 };
 
 util.inherits(Plasma, Options);
+
+/**
+ * Initialize plasma defaults.
+ *
+ * @api private
+ */
 
 Plasma.prototype._initPlasma = function() {
   this.enable('namespace');
@@ -40,7 +58,7 @@ Plasma.prototype._initPlasma = function() {
  * @api private
  */
 
-Plasma.prototype.loadData = function(value, options) {
+Plasma.prototype.load = function(value, options) {
   debug('loading data: %s', value);
   var opts = _.extend({}, this.options, options);
 
@@ -119,7 +137,7 @@ Plasma.prototype.glob = function(patterns, options) {
 
     // if the filename is `data`, or if `namespace` is
     // turned off, merge data onto the root
-    if (key === 'data' || !opts.namespace) {
+    if (key === 'data' || opts.namespace === false) {
       this.merge(obj);
     } else {
       cache[key] = obj;
@@ -130,7 +148,7 @@ Plasma.prototype.glob = function(patterns, options) {
 };
 
 /**
- * Default `name` function. Pass a function on `options.name`
+ * Default `namespace` function. Pass a function on `options.namespace`
  * to customize.
  *
  * @param {String} `fp`
@@ -140,8 +158,8 @@ Plasma.prototype.glob = function(patterns, options) {
  */
 
 function name(fp, opts) {
-  if (opts && opts.name) {
-    return opts.name(fp, opts);
+  if (opts && opts.namespace) {
+    return opts.namespace(fp, opts);
   }
   var ext = path.extname(fp);
   return path.basename(fp, ext);
@@ -191,21 +209,3 @@ function readData(fp, options) {
   } catch(err) {}
   return {};
 }
-
-
-function pathMethod(fp, method) {
-  if (method && method === 'name') {
-    return name(fp);
-  }
-
-  if (method && method === 'ext') {
-    return path.extname(fp);
-  }
-
-  if (method && Boolean(path[method])) {
-    return path[method](fp);
-  }
-
-  return null;
-}
-

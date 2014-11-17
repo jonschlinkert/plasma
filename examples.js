@@ -8,13 +8,13 @@
 // });
 
 // plasma
-//   .loadData('.assemblerc.yml')
-//   .loadData('foo', {bar: 'baz'})
-//   .loadData('foo', {bar: 'baz'})
-//   .loadData('test/fixtures/*.json')
-//   .loadData(['test/fixtures/*.yml', 'test/fixtures/nested/*.json'])
-//   .loadData(['test/fixtures/*.yml', 'fofo'])
-//   .loadData({blah: 'quux'})
-//   .loadData({fez: 'bang'});
+//   .load('.assemblerc.yml')
+//   .load('foo', {bar: 'baz'})
+//   .load('foo', {bar: 'baz'})
+//   .load('test/fixtures/*.json')
+//   .load(['test/fixtures/*.yml', 'test/fixtures/nested/*.json'])
+//   .load(['test/fixtures/*.yml', 'fofo'])
+//   .load({blah: 'quux'})
+//   .load({fez: 'bang'});
 
 // console.log(plasma);
