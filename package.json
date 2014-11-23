@@ -38,6 +38,7 @@
     "kind-of": "^0.1.2",
     "lodash": "^2.4.1",
     "option-cache": "^0.1.4",
+    "parse-csv": "^0.1.0",
     "relative": "^1.0.1"
   }
 }

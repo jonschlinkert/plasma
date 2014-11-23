@@ -17,6 +17,27 @@ describe('plasma.load()', function () {
     plasma = new Plasma();
   });
 
+  describe('formats:', function () {
+    it('should read ".json":', function () {
+      var actual = plasma.load('test/fixtures/b.json');
+      actual.should.eql({b: {bbb: 'data from b.json'}});
+    });
+
+    it('should read ".yml":', function () {
+      var actual = plasma.load('test/fixtures/e.yml');
+      actual.e.should.have.property('name', 'data from e.yml');
+    });
+
+    it('should read ".yaml":', function () {
+      var actual = plasma.load('test/fixtures/e.yaml');
+      actual.e.should.have.property('name', 'data from e.yml');
+    });
+
+    it('should read ".csv":', function () {
+      var actual = plasma.load('test/fixtures/a.csv');
+      actual.a.should.have.properties('1', '2', '3');
+    });
+  });
   describe('options:', function () {
     describe('namespace:', function () {
       it('should namespace data from files by default:', function () {
@@ -26,6 +47,12 @@ describe('plasma.load()', function () {
 
       it('should disable namespacing when set with plasma.disable()`:', function () {
         plasma.disable('namespace');
+        var a = plasma.load(['test/fixtures/a.json']);
+        a.should.eql({aaa: 'data from a.json'});
+      });
+
+      it('should disable namespacing when set with plasma.disable()`:', function () {
+        plasma.option('namespace', false);
         var a = plasma.load(['test/fixtures/a.json']);
         a.should.eql({aaa: 'data from a.json'});
       });
@@ -95,6 +122,13 @@ describe('plasma.load()', function () {
 
   describe('array of strings:', function () {
     it('should return the array of strings as is:', function () {
+      var actual = plasma.load(['foo', 'bar', 'baz']);
+      actual.should.eql(['foo', 'bar', 'baz']);
+    });
+  });
+
+  describe('data formats:', function () {
+    it('should convert CSV to json:', function () {
       var actual = plasma.load(['foo', 'bar', 'baz']);
       actual.should.eql(['foo', 'bar', 'baz']);
     });

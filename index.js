@@ -14,7 +14,6 @@ var typeOf = require('kind-of');
 var Options = require('option-cache');
 var debug = require('debug')('plasma');
 var relative = require('relative');
-var glob = require('globby');
 var _ = require('lodash');
 
 /**
@@ -32,7 +31,7 @@ var _ = require('lodash');
 
 var Plasma = module.exports = function Plasma(data) {
   Options.call(this);
-  this.data = {};
+  this.data = data ||{};
   this._initPlasma();
 };
 
@@ -59,8 +58,8 @@ Plasma.prototype._initPlasma = function() {
 
 Plasma.prototype.load = function(value, options) {
   debug('loading data: %s', value);
-  var opts = _.extend({}, this.options, options);
 
+  var opts = _.extend({}, this.options, options);
   if (typeOf(value) === 'object') {
     return this.merge(value);
   }
@@ -120,6 +119,7 @@ Plasma.prototype.mergeArray = function(arr) {
 Plasma.prototype.glob = function(patterns, options) {
   debug('glob: %s', patterns);
 
+  var glob = require('globby');
   var opts = _.merge({cwd: process.cwd()}, this.options, options);
   var files = glob.sync(patterns, opts);
 
@@ -208,10 +208,21 @@ function readData(fp, options) {
     switch (ext) {
     case '.json':
       return require(path.resolve(fp));
+    case '.csv':
+      // load jit to speed up init
+      var csv = require('parse-csv');
+      opts.csv = opts.csv || {};
+      opts.csv.format = opts.csv.format || 'jsonDict';
+      opts.csv.options = opts.csv.options || {
+        headers: {included: true}
+      };
+      var str = fs.readFileSync(fp, 'utf8');
+      return JSON.parse(csv.to(opts.csv.format, str, opts.csv.options));
     case '.yml':
     case '.yaml':
+      // load jit to speed up init
       var yaml = require('js-yaml');
-      return yaml.load(fs.readFileSync(fp, 'utf8'), opts);
+      return yaml.safeLoad(fs.readFileSync(fp, 'utf8'), opts);
     }
   } catch(err) {}
   return {};
