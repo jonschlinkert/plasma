@@ -23,6 +23,7 @@ var _ = require('lodash');
  * ```js
  * var Plasma = require('plasma');
  * var plasma = new Plasma();
+ * plasma.load([value]);
  * ```
  *
  * @param {Object} `data`
@@ -80,7 +81,7 @@ Plasma.prototype.load = function(value, options) {
  * @param  {String} `patterns` Glob patterns to pass to [globby]
  * @param  {Object} `opts` Options for globby, or pass a custom `parse` or `name`.
  * @return {Object}
- * @api public
+ * @api private
  */
 
 Plasma.prototype.merge = function(obj) {
@@ -95,7 +96,7 @@ Plasma.prototype.merge = function(obj) {
  * @param  {String} `patterns` Glob patterns to pass to [globby]
  * @param  {Object} `opts` Options for globby, or pass a custom `parse` or `name`.
  * @return {Object}
- * @api public
+ * @api private
  */
 
 Plasma.prototype.mergeArray = function(arr) {
@@ -113,7 +114,7 @@ Plasma.prototype.mergeArray = function(arr) {
  * @param  {String} `patterns` Glob patterns to pass to [globby]
  * @param  {Object} `opts` Options for globby, or pass a custom `parse` or `name`.
  * @return {Object}
- * @api public
+ * @api private
  */
 
 Plasma.prototype.glob = function(patterns, options) {
