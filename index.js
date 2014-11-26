@@ -60,6 +60,10 @@ Plasma.prototype._initPlasma = function() {
 Plasma.prototype.load = function(value, options) {
   debug('loading data: %s', value);
 
+  if (typeOf(options) === 'function') {
+    return options.call(this, value);
+  }
+
   var opts = _.extend({}, this.options, options);
   if (typeOf(value) === 'object') {
     return this.merge(value);
