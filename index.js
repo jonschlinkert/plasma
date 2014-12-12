@@ -10,9 +10,9 @@
 var fs = require('fs');
 var path = require('path');
 var util = require('util');
+var yaml = require('js-yaml');
 var typeOf = require('kind-of');
 var Options = require('option-cache');
-var debug = require('debug')('plasma');
 var relative = require('relative');
 var _ = require('lodash');
 
@@ -58,8 +58,6 @@ Plasma.prototype._initPlasma = function() {
  */
 
 Plasma.prototype.load = function(value, options) {
-  debug('loading data: %s', value);
-
   if (typeOf(options) === 'function') {
     return options.call(this, value);
   }
@@ -89,7 +87,6 @@ Plasma.prototype.load = function(value, options) {
  */
 
 Plasma.prototype.merge = function(obj) {
-  debug('merge: %s', obj);
   return _.merge(this.data, obj);
 };
 
@@ -104,8 +101,6 @@ Plasma.prototype.merge = function(obj) {
  */
 
 Plasma.prototype.mergeArray = function(arr) {
-  debug('mergeArray: %s', arr);
-
   return arr.reduce(function (acc, val) {
     return _.merge(acc, val);
   }, this.data);
@@ -122,8 +117,6 @@ Plasma.prototype.mergeArray = function(arr) {
  */
 
 Plasma.prototype.glob = function(patterns, options) {
-  debug('glob: %s', patterns);
-
   var glob = require('globby');
   var opts = _.merge({cwd: process.cwd()}, this.options, options);
   var files = glob.sync(patterns, opts);
@@ -225,8 +218,6 @@ function readData(fp, options) {
       return JSON.parse(csv.to(opts.csv.format, str, opts.csv.options));
     case '.yml':
     case '.yaml':
-      // load jit to speed up init
-      var yaml = require('js-yaml');
       return yaml.safeLoad(fs.readFileSync(fp, 'utf8'), opts);
     }
   } catch(err) {}
