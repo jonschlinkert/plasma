@@ -1,14 +1,14 @@
-/**
+/*!
  * plasma <https://github.com/jonschlinkert/plasma>
  *
- * Copyright (c) 2014 Jon Schlinkert, contributors.
- * Licensed under the MIT license.
+ * Copyright (c) 2014-2015, Jon Schlinkert.
+ * Licensed under the MIT License.
  */
 
 'use strict';
 
 var path = require('path');
-var should = require('should');
+require('should');
 var Plasma = require('..');
 var plasma;
 
@@ -75,7 +75,7 @@ describe('plasma.load()', function () {
         });
 
         var actual = plasma.load(['test/fixtures/b.json']);
-        actual.should.eql({'test/fixtures/b.json': {bbb: 'data from b.json'}});
+        actual.should.eql({'./test/fixtures/b.json': {bbb: 'data from b.json'}});
       });
     });
   });

@@ -7,37 +7,41 @@
     "name": "Jon Schlinkert",
     "url": "https://github.com/jonschlinkert"
   },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/jonschlinkert/plasma.git"
-  },
+  "repository": "jonschlinkert/plasma",
   "bugs": {
     "url": "https://github.com/jonschlinkert/plasma/issues"
   },
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "https://github.com/jonschlinkert/plasma/blob/master/LICENSE-MIT"
-    }
+  "license": "MIT",
+  "files": [
+    "index.js"
   ],
   "main": "index.js",
   "engines": {
     "node": ">=0.10.0"
   },
   "scripts": {
-    "test": "mocha -R spec"
-  },
-  "devDependencies": {
-    "mocha": "*",
-    "should": "*"
+    "test": "mocha"
   },
   "dependencies": {
-    "globby": "^0.1.1",
-    "js-yaml": "^3.2.3",
+    "globby": "^1.1.0",
+    "js-yaml": "^3.2.5",
     "kind-of": "^0.1.2",
     "lodash": "^2.4.1",
     "option-cache": "^0.1.4",
     "parse-csv": "^0.1.0",
-    "relative": "^1.0.1"
-  }
+    "relative": "^1.2.0"
+  },
+  "devDependencies": {
+    "mocha": "*"
+  },
+  "keywords": [
+    "config",
+    "csv",
+    "data",
+    "file",
+    "fs",
+    "json",
+    "read",
+    "yaml"
+  ]
 }
