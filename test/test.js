@@ -75,7 +75,7 @@ describe('plasma.load()', function () {
         });
 
         var actual = plasma.load(['test/fixtures/b.json']);
-        actual.should.eql({'./test/fixtures/b.json': {bbb: 'data from b.json'}});
+        actual.should.eql({'test/fixtures/b.json': {bbb: 'data from b.json'}});
       });
     });
   });
