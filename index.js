@@ -205,7 +205,8 @@ function readData(fp, options) {
   try {
     switch (ext) {
     case '.json':
-      return require(path.resolve(fp));
+      var str = fs.readFileSync(fp, 'utf8');
+      return JSON.parse(str);
     case '.csv':
       // load jit to speed up init
       var csv = require('parse-csv');
