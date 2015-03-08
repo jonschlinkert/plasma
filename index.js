@@ -11,6 +11,7 @@ var fs = require('fs');
 var path = require('path');
 var util = require('util');
 var glob = require('globby');
+var isGlob = require('is-glob');
 var typeOf = require('kind-of');
 var Options = require('option-cache');
 var relative = require('relative');
@@ -66,7 +67,15 @@ Plasma.prototype.load = function(val, options) {
   if (typeOf(val) === 'object') {
     return this.merge(val);
   }
-  if (Array.isArray(val) || typeof val === 'string') {
+  if (typeof val === 'string') {
+    // if it's not a glob, don't use globby
+    if (!isGlob(val)) {
+      return this.mergeFile(val, options);
+    }
+    // if it is, arrayify and fall through
+    val = [val];
+  }
+  if (Array.isArray(val)) {
     return this.mergeArray(val, opts);
   }
 };
@@ -95,21 +104,18 @@ Plasma.prototype.merge = function(obj) {
  * @api private
  */
 
-Plasma.prototype.mergeArray = function(arr, opts) {
-  arr = arrayify(arr);
-  var len = arr.length, i = 0;
-
+Plasma.prototype.mergeArray = function(val, opts) {
+  var len = val.length, i = 0;
   while (len--) {
-    var val = arr[i++];
-    if (typeOf(val) !== 'object') {
-      val = this.glob(arr, opts);
-      if (typeOf(val) !== 'object') {
-        return val;
+    var ele = val[i++];
+    if (typeOf(ele) !== 'object') {
+      ele = this.glob(val, opts);
+      if (typeOf(ele) !== 'object') {
+        return ele;
       }
     }
-    _.merge(this.data, val);
+    _.merge(this.data, ele);
   }
-
   return this.data;
 };
 
@@ -123,7 +129,8 @@ Plasma.prototype.mergeArray = function(arr, opts) {
  * @api private
  */
 
-Plasma.prototype.mergeFile = function(fp, opts) {
+Plasma.prototype.mergeFile = function(fp, options) {
+  var opts = _.extend({cwd: process.cwd()}, this.options, options);
   fp = relative(path.resolve(opts.cwd, fp));
   var key = name(fp, opts);
   var obj = read(fp, opts);
@@ -215,34 +222,24 @@ function read(fp, opts) {
 function readData(fp, options) {
   var opts = _.extend({}, options);
   var ext = opts.lang || path.extname(fp);
-
   if (ext.charAt(0) !== '.') {
     ext = '.' + ext;
   }
-
-  try {
-    switch (ext) {
+  switch (ext) {
     case '.json':
-      var str = fs.readFileSync(fp, 'utf8');
-      return JSON.parse(str);
-    case '.csv':
-      // load jit to speed up init
-      var csv = require('parse-csv');
-      opts.csv = opts.csv || {};
-      opts.csv.format = opts.csv.format || 'jsonDict';
-      opts.csv.options = opts.csv.options || {
-        headers: {included: true}
-      };
-      var str = fs.readFileSync(fp, 'utf8');
-      return JSON.parse(csv.to(opts.csv.format, str, opts.csv.options));
+      return JSON.parse(tryRead(fp));
     case '.yml':
     case '.yaml':
-      return yaml.safeLoad(fs.readFileSync(fp, 'utf8'), opts);
-    }
-  } catch(err) {}
+      return yaml.safeLoad(tryRead(fp), opts);
+    default:
+      return {};
+  }
   return {};
 }
 
-function arrayify(val) {
-  return !Array.isArray(val) ? [val] : val;
+function tryRead(fp) {
+  try {
+    return fs.readFileSync(fp, 'utf8');
+  } catch(err) {}
+  return {};
 }

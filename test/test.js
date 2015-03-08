@@ -7,8 +7,9 @@
 
 'use strict';
 
-var path = require('path');
+/* deps:mocha */
 require('should');
+var path = require('path');
 var Plasma = require('..');
 var plasma;
 
@@ -31,11 +32,6 @@ describe('plasma.load()', function () {
     it('should read ".yaml":', function () {
       var actual = plasma.load('test/fixtures/e.yaml');
       actual.e.should.have.property('name', 'data from e.yml');
-    });
-
-    it('should read ".csv":', function () {
-      var actual = plasma.load('test/fixtures/a.csv');
-      actual.a.should.have.properties('1', '2', '3');
     });
   });
   describe('options:', function () {
