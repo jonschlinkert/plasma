@@ -10,10 +10,11 @@
 var fs = require('fs');
 var path = require('path');
 var util = require('util');
-var yaml = require('js-yaml');
+var glob = require('globby');
 var typeOf = require('kind-of');
 var Options = require('option-cache');
 var relative = require('relative');
+var yaml = require('./lib/js-yaml');
 var _ = require('lodash');
 
 /**
@@ -57,22 +58,16 @@ Plasma.prototype._initPlasma = function() {
  * @api private
  */
 
-Plasma.prototype.load = function(value, options) {
+Plasma.prototype.load = function(val, options) {
   if (typeOf(options) === 'function') {
-    return options.call(this, value);
+    return options.call(this, val);
   }
-
   var opts = _.extend({}, this.options, options);
-  if (typeOf(value) === 'object') {
-    return this.merge(value);
+  if (typeOf(val) === 'object') {
+    return this.merge(val);
   }
-
-  if (Array.isArray(value) || typeof value === 'string') {
-    // If the first arg is not a string or array, it's not a glob
-    if (typeOf(value[0]) === 'object') {
-      return this.mergeArray(value);
-    }
-    return this.glob(value, opts);
+  if (Array.isArray(val) || typeof val === 'string') {
+    return this.mergeArray(val, opts);
   }
 };
 
@@ -100,10 +95,48 @@ Plasma.prototype.merge = function(obj) {
  * @api private
  */
 
-Plasma.prototype.mergeArray = function(arr) {
-  return arr.reduce(function (acc, val) {
-    return _.merge(acc, val);
-  }, this.data);
+Plasma.prototype.mergeArray = function(arr, opts) {
+  arr = arrayify(arr);
+  var len = arr.length, i = 0;
+
+  while (len--) {
+    var val = arr[i++];
+    if (typeOf(val) !== 'object') {
+      val = this.glob(arr, opts);
+      if (typeOf(val) !== 'object') {
+        return val;
+      }
+    }
+    _.merge(this.data, val);
+  }
+
+  return this.data;
+};
+
+/**
+ * Merge an array of objects onto the `cache` object. We
+ * keep this method separate for performance reasons.
+ *
+ * @param  {String} `patterns` Glob patterns to pass to [globby]
+ * @param  {Object} `opts` Options for globby, or pass a custom `parse` or `name`.
+ * @return {Object}
+ * @api private
+ */
+
+Plasma.prototype.mergeFile = function(fp, opts) {
+  fp = relative(path.resolve(opts.cwd, fp));
+  var key = name(fp, opts);
+  var obj = read(fp, opts);
+  var res = {};
+
+  // if the filename is `data`, or if `namespace` is
+  // turned off, merge data onto the root
+  if (key === 'data' || opts.namespace === false) {
+    this.merge(obj);
+  } else {
+    res[key] = obj;
+  }
+  return res;
 };
 
 /**
@@ -117,31 +150,19 @@ Plasma.prototype.mergeArray = function(arr) {
  */
 
 Plasma.prototype.glob = function(patterns, options) {
-  var glob = require('globby');
-  var opts = _.merge({cwd: process.cwd()}, this.options, options);
+  var opts = _.extend({cwd: process.cwd()}, this.options, options);
   var files = glob.sync(patterns, opts);
+  var self = this;
 
-  if (!files || files.length === 0) {
-    // if this happens, it's probably an array of non-filepath
-    // strings, or invalid path/glob patterns
-    return patterns;
+  // if this happens, it's probably an array of non-filepath
+  // strings, or invalid path/glob patterns
+  if (!files || !files.length) return patterns;
+
+  var len = files.length, i = 0;
+  while (len--) {
+    _.merge(this.data, self.mergeFile(files[i++], opts));
   }
-
-  return files.reduce(function (cache, fp) {
-    fp = relative(path.resolve(opts.cwd, fp));
-    var key = name(fp, opts);
-    var obj = read(fp, opts);
-
-    // if the filename is `data`, or if `namespace` is
-    // turned off, merge data onto the root
-    if (key === 'data' || opts.namespace === false) {
-      this.merge(obj);
-    } else {
-      cache[key] = obj;
-    }
-
-    return cache;
-  }.bind(this), this.data);
+  return this.data;
 };
 
 /**
@@ -156,15 +177,12 @@ Plasma.prototype.glob = function(patterns, options) {
 
 function name(fp, options) {
   var opts = options || {};
-
   if (typeof opts.namespace === 'function') {
     return opts.namespace(fp, opts);
   }
-
   if (typeof opts.namespace === false) {
     return fp;
   }
-
   var ext = path.extname(fp);
   return path.basename(fp, ext);
 }
@@ -198,7 +216,7 @@ function readData(fp, options) {
   var opts = _.extend({}, options);
   var ext = opts.lang || path.extname(fp);
 
-  if (ext[0] !== '.') {
+  if (ext.charAt(0) !== '.') {
     ext = '.' + ext;
   }
 
@@ -223,4 +241,8 @@ function readData(fp, options) {
     }
   } catch(err) {}
   return {};
+}
+
+function arrayify(val) {
+  return !Array.isArray(val) ? [val] : val;
 }
