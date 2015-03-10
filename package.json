@@ -1,7 +1,7 @@
 {
   "name": "plasma",
   "description": "Load data from globs or files or directly from objects.",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "homepage": "https://github.com/jonschlinkert/plasma",
   "author": {
     "name": "Jon Schlinkert",
@@ -27,7 +27,8 @@
     "node": ">=0.10.0"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "prepublish": "browserify -o browser.js -e index.js"
   },
   "dependencies": {
     "globby": "^1.2.0",
@@ -38,6 +39,7 @@
     "relative": "^2.0.0"
   },
   "devDependencies": {
+    "browserify": "^9.0.3",
     "mocha": "^2.2.0",
     "should": "*"
   },
