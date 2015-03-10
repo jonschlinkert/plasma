@@ -25,7 +25,10 @@ var _ = require('lodash');
  * ```js
  * var Plasma = require('plasma');
  * var plasma = new Plasma();
- * plasma.load([value]);
+ *
+ * // load some data
+ * plasma.load(['*.json', 'data/*.yml']);
+ * plasma.load({a: 'b', c: 'd'});
  * ```
  *
  * @param {Object} `data`
