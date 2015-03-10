@@ -53,6 +53,14 @@ describe('plasma.load()', function () {
         a.should.eql({aaa: 'data from a.json'});
       });
 
+      it('should merge data from `data` into the root of the data obect:', function () {
+        plasma.load('test/fixtures/data.json');
+        plasma.data.should.eql({ '_root': 'I should be at the root!' });
+        plasma.data = {};
+        plasma.load('test/fixtures/not-data.json');
+        plasma.data.should.not.eql({ '_root': 'I should be at the root!' });
+      });
+
       it('should re-enable namespacing with plasma.enable()`:', function () {
         // disable
         plasma.disable('namespace');
@@ -118,13 +126,6 @@ describe('plasma.load()', function () {
 
   describe('array of strings:', function () {
     it('should return the array of strings as is:', function () {
-      var actual = plasma.load(['foo', 'bar', 'baz']);
-      actual.should.eql(['foo', 'bar', 'baz']);
-    });
-  });
-
-  describe('data formats:', function () {
-    it('should convert CSV to json:', function () {
       var actual = plasma.load(['foo', 'bar', 'baz']);
       actual.should.eql(['foo', 'bar', 'baz']);
     });
