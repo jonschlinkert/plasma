@@ -142,7 +142,7 @@ Plasma.prototype.mergeFile = function(fp, options) {
   // if the filename is `data`, or if `namespace` is
   // turned off, merge data onto the root
   if (key === 'data' || opts.namespace === false) {
-    this.merge(obj);
+    res = this.merge(obj);
   } else {
     res[key] = obj;
   }

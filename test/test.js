@@ -53,6 +53,11 @@ describe('plasma.load()', function () {
         a.should.eql({aaa: 'data from a.json'});
       });
 
+      it('should disable namespacing when passing `namespace: false`:', function () {
+        var a = plasma.load('test/fixtures/a.json', {namespace: false});
+        a.should.eql({aaa: 'data from a.json'});
+      });
+
       it('should merge data from `data` into the root of the data obect:', function () {
         plasma.load('test/fixtures/data.json');
         plasma.data.should.eql({ '_root': 'I should be at the root!' });
