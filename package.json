@@ -1,9 +1,9 @@
 {
   "name": "plasma",
   "description": "Load data from globs or files or directly from objects.",
-  "version": "0.8.4",
+  "version": "0.9.0",
   "homepage": "https://github.com/jonschlinkert/plasma",
-  "author":"Jon Schlinkert (https://github.com/jonschlinkert)",
+  "author": "Jon Schlinkert (https://github.com/jonschlinkert)",
   "repository": {
     "type": "git",
     "url": "git://github.com/jonschlinkert/plasma.git"
@@ -13,8 +13,7 @@
   },
   "license": "MIT",
   "files": [
-    "index.js",
-    "lib/"
+    "index.js"
   ],
   "main": "index.js",
   "engines": {
@@ -34,8 +33,9 @@
     "relative": "^3.0.0"
   },
   "devDependencies": {
-    "browserify": "^9.0.3",
+    "js-yaml": "^3.3.1",
     "mocha": "^2.2.0",
+    "parse-csv": "^0.1.0",
     "should": "*"
   },
   "keywords": [
