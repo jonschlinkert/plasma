@@ -9,7 +9,6 @@ plasma.option('namespace', function(fp) {
   return path.basename(fp, path.extname(fp));
 });
 
-
 // plasma.load('.assemblerc.yml');
 // plasma.load('foo', {bar: 'baz'});
 // plasma.load('test/fixtures/*.json');
@@ -19,7 +18,6 @@ plasma.option('namespace', function(fp) {
 // plasma.load({fez: 'bang'});
 
 // console.log(plasma);
-
 
 plasma.enable('namespace');
 plasma.load(['test/fixtures/*.yml', 'test/fixtures/nested/*.json']);
