@@ -8,17 +8,9 @@ Install with [npm](https://www.npmjs.com/)
 $ npm i plasma --save
 ```
 
-## Other projects
-
-* [config-cache](https://github.com/jonschlinkert/config-cache): General purpose JavaScript object storage methods.
-* [cache-base](https://github.com/jonschlinkert/cache-base): Generic object cache for node.js/javascript projects.
-* [map-cache](https://github.com/jonschlinkert/map-cache): Basic cache object for storing key-value pairs.
-* [option-cache](https://github.com/jonschlinkert/option-cache): Simple API for managing options in JavaScript applications.
-* [plasma-cache](https://github.com/jonschlinkert/plasma-cache): Object cache for [Plasma].
-
 ## Usage
 
-### [Plasma](index.js#L39)
+### [Plasma](index.js#L38)
 
 Create an instance of `Plasma`, optionally passing an object of `data` to initialize with.
 
@@ -36,6 +28,37 @@ var plasma = new Plasma();
 plasma.load(['*.json', 'data/*.yml']);
 plasma.load({a: 'b', c: 'd'});
 ```
+
+### [.loader](index.js#L82)
+
+Register a data loader for reading data. _(Note that as of 0.9.0, plasma no longer reads YAML files by default)_.
+
+**Params**
+
+* `ext` **{String}**: The file extension to match to the loader.
+* `fn` **{Function}**: The loader function.
+
+**Example**
+
+```js
+var fs = require('fs');
+var yaml = require('js-yaml');
+
+plasma.loader('yml', function(fp) {
+  var str = fs.readFileSync(fp, 'utf8');
+  return yaml.safeLoad(str);
+});
+
+plasma.load('foo.yml');
+```
+
+## Related projects
+
+* [config-cache](https://github.com/jonschlinkert/config-cache): General purpose JavaScript object storage methods.
+* [cache-base](https://github.com/jonschlinkert/cache-base): Generic object cache for node.js/javascript projects.
+* [map-cache](https://github.com/jonschlinkert/map-cache): Basic cache object for storing key-value pairs.
+* [option-cache](https://github.com/jonschlinkert/option-cache): Simple API for managing options in JavaScript applications.
+* [plasma-cache](https://github.com/jonschlinkert/plasma-cache): Object cache for [Plasma].
 
 ## Contributing
 
