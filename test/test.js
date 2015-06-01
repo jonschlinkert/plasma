@@ -7,18 +7,41 @@
 
 'use strict';
 
-/* deps:mocha */
+/* deps: mocha */
 require('should');
+var fs = require('fs');
+var csv = require('parse-csv');
 var path = require('path');
+var yaml = require('js-yaml');
 var Plasma = require('..');
 var plasma;
 
 describe('plasma.load()', function () {
   beforeEach(function() {
     plasma = new Plasma();
+
+    plasma.loader('yml', function(fp, opts) {
+      var str = plasma.loader('read')(fp);
+      return yaml.safeLoad(str, opts);
+    });
+
+    plasma.loader('yaml', function(fp, opts) {
+      return plasma.loader('yml')(fp, opts);
+    });
+
+    plasma.loader('csv', function(fp, opts) {
+      var str = plasma.loader('read')(fp);
+      var res = csv.jsonDict(str, {headers: {included: true}});
+      return JSON.parse(res);
+    });
   });
 
   describe('formats:', function () {
+    it('should read ".csv":', function () {
+      var actual = plasma.load('test/fixtures/a.csv');
+      actual.a.should.have.properties('1', '2', '3');
+    });
+
     it('should read ".json":', function () {
       var actual = plasma.load('test/fixtures/b.json');
       actual.should.eql({b: {bbb: 'data from b.json'}});

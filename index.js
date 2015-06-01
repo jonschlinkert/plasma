@@ -17,7 +17,6 @@ var merge = require('mixin-deep');
 var extend = require('extend-shallow');
 var Options = require('option-cache');
 var relative = require('relative');
-var yaml = require('./lib/js-yaml');
 
 /**
  * Create an instance of `Plasma`, optionally passing
@@ -38,11 +37,56 @@ var yaml = require('./lib/js-yaml');
 
 var Plasma = module.exports = function Plasma(data) {
   Options.call(this);
-  this.options.namespace = true;
   this.data = data ||{};
+  this.initPlasma();
 };
 
 util.inherits(Plasma, Options);
+
+/**
+ * Initialize defaults
+ */
+
+Plasma.prototype.initPlasma = function() {
+  this.loaders = {};
+  this.enable('namespace');
+  this.loader('read', function (fp) {
+    return tryRead(fp);
+  });
+  this.loader('json', function (fp) {
+    return JSON.parse(tryRead(fp));
+  });
+};
+
+/**
+ * Register a data loader for reading data. _(Note that as of
+ * 0.9.0, plasma no longer reads YAML files by default)_.
+ *
+ * ```js
+ * var fs = require('fs');
+ * var yaml = require('js-yaml');
+ *
+ * plasma.loader('yml', function(fp) {
+ *   var str = fs.readFileSync(fp, 'utf8');
+ *   return yaml.safeLoad(str);
+ * });
+ *
+ * plasma.load('foo.yml');
+ * ```
+ *
+ * @param  {String} `ext` The file extension to match to the loader.
+ * @param  {Function} `fn` The loader function.
+ * @api public
+ */
+
+Plasma.prototype.loader = function(ext, fn) {
+  if (ext.charAt(0) !== '.') ext = '.' + ext;
+  if (typeof fn === 'undefined') {
+    return this.loaders[ext];
+  }
+  this.loaders[ext] = fn;
+  return this;
+};
 
 /**
  * Load data from the given `value`.
@@ -127,7 +171,7 @@ Plasma.prototype.mergeFile = function(fp, options) {
   var opts = extend({cwd: process.cwd()}, this.options, options);
   fp = relative(path.resolve(opts.cwd, fp));
   var key = name(fp, opts);
-  var obj = read(fp, opts);
+  var obj = read.call(this, fp, opts);
   var res = {};
 
   // if the filename is `data`, or if `namespace` is
@@ -202,7 +246,7 @@ function read(fp, opts) {
   if (opts && opts.read) {
     return opts.read(fp, opts);
   }
-  return readData(fp, opts);
+  return readData.call(this, fp, opts);
 }
 
 /**
@@ -214,26 +258,24 @@ function read(fp, opts) {
  */
 
 function readData(fp, options) {
+  // shallow clone options
   var opts = extend({}, options);
+  // get the loader for this file.
   var ext = opts.lang || path.extname(fp);
-  if (ext.charAt(0) !== '.') {
+  if (ext && ext.charAt(0) !== '.') {
     ext = '.' + ext;
   }
-  switch (ext) {
-    case '.json':
-      return JSON.parse(tryRead(fp));
-    case '.yml':
-    case '.yaml':
-      return yaml.safeLoad(tryRead(fp), opts);
-    default:
-      return {};
+  if (!this.loaders.hasOwnProperty(ext)) {
+    return this.loader('read')(fp, opts)
   }
-  return {};
+  return this.loader(ext)(fp, opts);
 }
 
 function tryRead(fp) {
   try {
     return fs.readFileSync(fp, 'utf8');
-  } catch(err) {}
-  return {};
+  } catch(err) {
+    var ext = path.extname(ext);
+    throw new Error('plasma could not read ' + fp + ' ' + err);
+  }
 }
