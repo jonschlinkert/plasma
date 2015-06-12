@@ -21,7 +21,7 @@
   },
   "scripts": {
     "test": "mocha",
-    "prepublish": "browserify -o browser.js -e index.js"
+    "browserify": "browserify -o browser.js -e index.js"
   },
   "dependencies": {
     "extend-shallow": "^1.1.4",
@@ -33,6 +33,7 @@
     "relative": "^3.0.0"
   },
   "devDependencies": {
+    "browserify": "^10.2.4",
     "js-yaml": "^3.3.1",
     "mocha": "^2.2.0",
     "parse-csv": "^0.1.0",
