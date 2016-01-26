@@ -10,7 +10,7 @@ $ npm i plasma --save
 
 ## Usage
 
-### [Plasma](index.js#L38)
+### [Plasma](index.js#L43)
 
 Create an instance of `Plasma`, optionally passing an object of `data` to initialize with.
 
@@ -29,7 +29,7 @@ plasma.load(['*.json', 'data/*.yml']);
 plasma.load({a: 'b', c: 'd'});
 ```
 
-### [.loader](index.js#L82)
+### [.dataLoader](index.js#L87)
 
 Register a data loader for reading data. _(Note that as of 0.9.0, plasma no longer reads YAML files by default)_.
 
@@ -44,7 +44,7 @@ Register a data loader for reading data. _(Note that as of 0.9.0, plasma no long
 var fs = require('fs');
 var yaml = require('js-yaml');
 
-plasma.loader('yml', function(fp) {
+plasma.dataLoader('yml', function(fp) {
   var str = fs.readFileSync(fp, 'utf8');
   return yaml.safeLoad(str);
 });

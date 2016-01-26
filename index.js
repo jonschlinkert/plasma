@@ -9,14 +9,7 @@
 
 var fs = require('fs');
 var path = require('path');
-var util = require('util');
-var glob = require('globby');
-var isGlob = require('is-glob');
-var typeOf = require('kind-of');
-var merge = require('mixin-deep');
-var extend = require('extend-shallow');
-var Options = require('option-cache');
-var relative = require('relative');
+var utils = require('./utils');
 
 /**
  * Create an instance of `Plasma`, optionally passing
@@ -35,25 +28,22 @@ var relative = require('relative');
  * @api public
  */
 
-var Plasma = module.exports = function Plasma(data) {
-  Options.call(this);
-  this.data = data ||{};
+function Plasma(options) {
+  this.options = options || {};
+  this.cache = this.options.cache || {};
+  this.dataLoaders = [];
   this.initPlasma();
-};
-
-util.inherits(Plasma, Options);
+}
 
 /**
  * Initialize defaults
  */
 
 Plasma.prototype.initPlasma = function() {
-  this.loaders = {};
-  this.enable('namespace');
-  this.loader('read', function (fp) {
-    return tryRead(fp);
-  });
-  this.loader('json', function (fp) {
+  if (typeof this.options.namespace === 'undefined') {
+    this.options.namespace = true;
+  }
+  this.dataLoader('json', function(fp) {
     return JSON.parse(tryRead(fp));
   });
 };
@@ -66,7 +56,7 @@ Plasma.prototype.initPlasma = function() {
  * var fs = require('fs');
  * var yaml = require('js-yaml');
  *
- * plasma.loader('yml', function(fp) {
+ * plasma.dataLoader('yml', function(fp) {
  *   var str = fs.readFileSync(fp, 'utf8');
  *   return yaml.safeLoad(str);
  * });
@@ -79,13 +69,29 @@ Plasma.prototype.initPlasma = function() {
  * @api public
  */
 
-Plasma.prototype.loader = function(ext, fn) {
-  if (ext.charAt(0) !== '.') ext = '.' + ext;
-  if (typeof fn === 'undefined') {
-    return this.loaders[ext];
-  }
-  this.loaders[ext] = fn;
+Plasma.prototype.dataLoader = function(name, fn) {
+  this.dataLoaders.push({name: name, fn: fn});
   return this;
+};
+
+
+Plasma.prototype.matchLoader = function(fp) {
+  var len = this.dataLoaders.length, i = -1;
+  var loaders = this.dataLoaders;
+  var ext = path.extname(fp);
+  var fns = [];
+
+  while (++i < len) {
+    var loader = loaders[i];
+    var name = loader.name;
+    if (typeof name === 'string' && ext === utils.formatExt(name)) {
+      fns.push(loader.fn);
+
+    } else if (utils.typeOf(name) === 'regexp' && name.test(ext)) {
+      fns.push(loader.fn);
+    }
+  }
+  return fns;
 };
 
 /**
@@ -97,17 +103,17 @@ Plasma.prototype.loader = function(ext, fn) {
  * @api private
  */
 
-Plasma.prototype.load = function(val, options) {
-  if (typeOf(options) === 'function') {
+Plasma.prototype.load = function(key, val, options) {
+  if (utils.typeOf(options) === 'function') {
     return options.call(this, val);
   }
-  var opts = extend({}, this.options, options);
-  if (typeOf(val) === 'object') {
+  var opts = utils.extend({}, this.options, options);
+  if (utils.typeOf(val) === 'object') {
     return this.merge(val);
   }
   if (typeof val === 'string') {
     // if it's not a glob, don't use globby
-    if (!isGlob(val)) {
+    if (!utils.isGlob(val)) {
       return this.mergeFile(val, options);
     }
     // if it is, arrayify and fall through
@@ -129,7 +135,7 @@ Plasma.prototype.load = function(val, options) {
  */
 
 Plasma.prototype.merge = function(obj) {
-  return merge(this.data, obj);
+  return utils.merge(this.cache, obj);
 };
 
 /**
@@ -146,15 +152,15 @@ Plasma.prototype.mergeArray = function(val, opts) {
   var len = val.length, i = 0;
   while (len--) {
     var ele = val[i++];
-    if (typeOf(ele) !== 'object') {
+    if (utils.typeOf(ele) !== 'object') {
       ele = this.glob(val, opts);
-      if (typeOf(ele) !== 'object') {
+      if (utils.typeOf(ele) !== 'object') {
         return ele;
       }
     }
-    merge(this.data, ele);
+    utils.merge(this.cache, ele);
   }
-  return this.data;
+  return this.cache;
 };
 
 /**
@@ -168,8 +174,8 @@ Plasma.prototype.mergeArray = function(val, opts) {
  */
 
 Plasma.prototype.mergeFile = function(fp, options) {
-  var opts = extend({cwd: process.cwd()}, this.options, options);
-  fp = relative(path.resolve(opts.cwd, fp));
+  var opts = utils.extend({cwd: process.cwd()}, this.options, options);
+  fp = utils.relative(path.resolve(opts.cwd, fp));
   var key = name(fp, opts);
   var obj = read.call(this, fp, opts);
   var res = {};
@@ -195,8 +201,8 @@ Plasma.prototype.mergeFile = function(fp, options) {
  */
 
 Plasma.prototype.glob = function(patterns, options) {
-  var opts = extend({cwd: process.cwd()}, this.options, options);
-  var files = glob.sync(patterns, opts);
+  var opts = utils.extend({cwd: process.cwd()}, this.options, options);
+  var files = utils.glob.sync(patterns, opts);
   var self = this;
 
   // if this happens, it's probably an array of non-filepath
@@ -205,9 +211,9 @@ Plasma.prototype.glob = function(patterns, options) {
 
   var len = files.length, i = 0;
   while (len--) {
-    merge(this.data, self.mergeFile(files[i++], opts));
+    utils.merge(this.cache, self.mergeFile(files[i++], opts));
   }
-  return this.data;
+  return this.cache;
 };
 
 /**
@@ -259,16 +265,16 @@ function read(fp, opts) {
 
 function readData(fp, options) {
   // shallow clone options
-  var opts = extend({}, options);
+  var opts = utils.extend({}, options);
   // get the loader for this file.
   var ext = opts.lang || path.extname(fp);
   if (ext && ext.charAt(0) !== '.') {
     ext = '.' + ext;
   }
-  if (!this.loaders.hasOwnProperty(ext)) {
-    return this.loader('read')(fp, opts)
+  if (!this.dataLoaders.hasOwnProperty(ext)) {
+    return this.dataLoader('read')(fp, opts);
   }
-  return this.loader(ext)(fp, opts);
+  return this.dataLoader(ext)(fp, opts);
 }
 
 function tryRead(fp) {
@@ -279,3 +285,9 @@ function tryRead(fp) {
     throw new Error('plasma could not read ' + fp + ' ' + err);
   }
 }
+
+/**
+ * Expose `Plasma`
+ */
+
+module.exports = Plasma;
