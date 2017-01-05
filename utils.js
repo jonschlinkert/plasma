@@ -21,10 +21,7 @@ require = fn;
  */
 
 utils.formatExt = function(ext) {
-  if (ext.charAt(0) !== '.') {
-    return '.' + ext;
-  }
-  return ext;
+  return ext.charAt(0) === '.' ? ext.slice(1) : ext;
 };
 
 /**

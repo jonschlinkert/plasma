@@ -7,8 +7,7 @@
 
 'use strict';
 
-/* deps: mocha */
-require('should');
+require('mocha');
 var fs = require('fs');
 var csv = require('parse-csv');
 var path = require('path');
